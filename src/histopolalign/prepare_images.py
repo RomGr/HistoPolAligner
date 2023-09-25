@@ -961,32 +961,32 @@ def remove_background_histology(image: Image, image_labels: Image):
 
 
 def count_pixels(matrix: Image):
-        """
-        count_pixels returns the number of different labels one image
+    """
+    count_pixels returns the number of different labels one image
 
-        Parameters
-        ----------
-        matrix : Image
-            the image of interest
+    Parameters
+    ----------
+    matrix : Image
+        the image of interest
         
-        Returns
-        -------
-        len(keys_signal) : int
-            the number of different labels in the image
-        """
-        all_pixels = []
+    Returns
+    -------
+    len(keys_signal) : int
+        the number of different labels in the image
+    """
+    all_pixels = []
         
-        # convert the image to an array and downsample the image to faster processing
-        matrix_arr = np.array(matrix)
-        matrix_arr = matrix_arr[::5, ::5, :]
+    # convert the image to an array and downsample the image to faster processing
+    matrix_arr = np.array(matrix)
+    matrix_arr = matrix_arr[::5, ::5, :]
         
-        # iterate over the image    
-        for x in matrix_arr:
-            for y in x:
-                # and append the pixel to the list of pixels
-                all_pixels.append(tuple(y))
+    # iterate over the image    
+    for x in matrix_arr:
+        for y in x:
+            # and append the pixel to the list of pixels
+            all_pixels.append(tuple(y))
                 
-        # get the number of different labels
-        keys = list(Counter(all_pixels).keys())
-        keys_signal = [key for key in keys if key != (255, 255, 255) and key != (0, 0, 0)]
-        return len(keys_signal), keys_signal
+    # get the number of different labels
+    keys = list(Counter(all_pixels).keys())
+    keys_signal = [key for key in keys if key != (255, 255, 255) and key != (0, 0, 0)]
+    return len(keys_signal), keys_signal

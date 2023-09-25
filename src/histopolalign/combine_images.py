@@ -28,6 +28,7 @@ def create_to_align_folder():
         pass
 
 
+
 def load_the_images(histology_path: str, Verbose: bool = False):
     """
     load all the images from the histology annotations (i.e. the 8 masks corresponding to the 8 classes)
@@ -101,6 +102,7 @@ def load_the_images(histology_path: str, Verbose: bool = False):
     return imgs_all
 
 
+
 def get_filenames_histology(histology_path: str):
     """
     get the names of all the folders containing the histology stainings and annotations
@@ -121,6 +123,7 @@ def get_filenames_histology(histology_path: str):
         for fol in os.listdir(os.path.join(histology_path, folder)):
             fnames_histology.append(os.path.join(histology_path, folder, fol))
     return fnames_histology
+
 
 
 def get_combined_img(imgs_all: dict, force_recompute: bool = False, Verbose = False):
@@ -168,6 +171,7 @@ def get_combined_img(imgs_all: dict, force_recompute: bool = False, Verbose = Fa
     end = time.time()
     if Verbose:
         print("Get combined images: {:.3f} seconds.".format(end - start))
+
 
 
 def generate_combined_images(imgs: list):
