@@ -44,7 +44,6 @@ def create_final_labels(measurement: FolderAlignHistology):
     """
     color_code_link = load_color_code_links()
     color_code_link_GM_WM = load_color_code_links(GM_WM = True)
-    print(color_code_link_GM_WM)
     
     img_labels_propagated = measurement.labels_final
     img_labels_propagated_GM_WM = measurement.labels_GM_WM_final

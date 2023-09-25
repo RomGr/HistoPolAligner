@@ -14,7 +14,7 @@ from histopolalign.helpers import load_color_maps
 from histopolalign.prepare_images import process_image_pathology
 
 
-def create_align_folders(alignment_measurements: list):
+def create_align_folders(alignment_measurements: list, Verbose: bool = False):
     """
     create_align_folders is the master function calling create_the_alignment_folder for each measurement in the list
 
@@ -22,6 +22,8 @@ def create_align_folders(alignment_measurements: list):
     ----------
     alignment_measurements : list
         the list of measurements to be aligned
+    Verbose : bool, default is False
+        if True, print the time taken by the function (default is False)
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     try:
@@ -30,7 +32,7 @@ def create_align_folders(alignment_measurements: list):
         pass
 
     for measurement in tqdm(alignment_measurements):
-        create_the_alignment_folder(measurement, Verbose = True)
+        create_the_alignment_folder(measurement, Verbose = Verbose)
         
     
 def create_the_alignment_folder(measurement: FolderAlignHistology, Verbose: bool = False):
@@ -256,7 +258,6 @@ def create_propagation_mask(image: Image, folder_name: str, GM_WM: bool = False)
         if True, the image is a GM_WM image (default is False)
     """
     color_code = load_color_maps()
-    print(color_code)
     image_array = np.array(image)
     mask_propagation = np.zeros(image_array.shape[:2])
     
@@ -266,9 +267,7 @@ def create_propagation_mask(image: Image, folder_name: str, GM_WM: bool = False)
     for _, val in color_code.items():
         if tuple(val['RGB']) in keys:
             color_code_tupled[tuple(val['RGB'])] = val['code']
-        
-    print(color_code_tupled)
-    
+            
     mask = np.where(np.array(image_array).sum(axis = 2) != 0)
     for idx, idy in zip(mask[0], mask[1]):
         try:
@@ -280,7 +279,6 @@ def create_propagation_mask(image: Image, folder_name: str, GM_WM: bool = False)
     # create the image and save it  
     mask_prop = Image.fromarray(mask_propagation).convert('L')
     mask_path = os.path.join(folder_name, 'mask')
-    print(mask_path)
     try:
         os.mkdir(mask_path)
     except FileExistsError:

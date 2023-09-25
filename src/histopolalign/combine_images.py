@@ -53,7 +53,7 @@ def load_the_images(histology_path: str, Verbose: bool = False):
 
     # iterate over the different histology folders
     start = time.time()
-    for file_histology in tqdm(filenames_histology):
+    for file_histology in (tqdm(filenames_histology) if Verbose else filenames_histology):
         imgs = {}
         
         # iterate over the different images in the histology folder

@@ -56,7 +56,6 @@ def match_skeletons(measurement: FolderAlignHistology, border_parameter: int, ns
     except FileExistsError:
         pass
     
-    # TODO: check what happens for other images
     # get the contour points and sample nsamples points from them
     histology_pts, intensity_pts = get_contour_points(measurement, border_parameter, path_histology_polarimetry_aligned)
     histology_pts, intensity_pts, nsamp = sample_points(histology_pts, intensity_pts, nsamples = nsamples)

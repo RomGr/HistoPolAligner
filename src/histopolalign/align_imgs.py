@@ -47,27 +47,30 @@ def align_img_master(alignment_measurements):
     
     
 def align_w_imageJ(ij, alignment_measurements):
+    current_folder = '"' + os.path.dirname(os.path.realpath(__file__)).split('src')[0].replace('\\', '/')
+    current_folder_no_start = current_folder.replace('"', '')
+    
     macro = """
-    open("C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/histology.png");
-    open("C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/labels.png");
-    open("C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/labels_GM_WM.png");
-    open("C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/polarimetry.png");
+    open(""" + current_folder + """/notebooks/temp/histology.png");
+    open(""" + current_folder + """/notebooks/temp/labels.png");
+    open("""  + current_folder + """/notebooks/temp/labels_GM_WM.png");
+    open(""" + current_folder + """/notebooks/temp/polarimetry.png");
 
-    call("bunwarpj.bUnwarpJ_.loadLandmarks", "C:\\Users\\romai\\Documents\\HistoPolAlign\\notebooks\\temp\\coordinates.txt");
-    run("bUnwarpJ", "load=C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels_GM_WM.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
-    saveAs("Tiff", "C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/labels_GM_WM_registered.tif");
+    call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels_GM_WM.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    saveAs("Tiff", """ + current_folder + """/notebooks/temp/labels_GM_WM_registered.tif");
+    close();
+    close();
+    
+    call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    saveAs("Tiff", """ + current_folder + """/notebooks/temp/labels_registered.tif");
     close();
     close();
 
-    call("bunwarpj.bUnwarpJ_.loadLandmarks", "C:\\Users\\romai\\Documents\\HistoPolAlign\\notebooks\\temp\\coordinates.txt");
-    run("bUnwarpJ", "load=C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
-    saveAs("Tiff", "C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/labels_registered.tif");
-    close();
-    close();
-
-    call("bunwarpj.bUnwarpJ_.loadLandmarks", "C:\\Users\\romai\\Documents\\HistoPolAlign\\notebooks\\temp\\coordinates.txt");
-    run("bUnwarpJ", "load=C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=histology.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=4 image_weight=0 consistency_weight=2 stop_threshold=0.01");
-    saveAs("Tiff", "C:/Users/romai/Documents/HistoPolAlign/notebooks/temp/histo_registered.tif");
+    call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=histology.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=4 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    saveAs("Tiff", """ + current_folder + """/notebooks/temp/histo_registered.tif");
 
     close();
     close();
@@ -76,6 +79,8 @@ def align_w_imageJ(ij, alignment_measurements):
     close();
     close();
     """
+    
+    print(macro)
     
     for measurement in alignment_measurements:
         write_mp_fp(measurement)
@@ -89,7 +94,11 @@ def align_w_imageJ(ij, alignment_measurements):
 def save_imgs_alignment(measurement):
     
     dir_path = os.path.dirname(os.path.realpath(__file__)).split('src')[0]
-        
+    try:
+        os.mkdir(os.path.join(dir_path, 'notebooks', 'temp'))
+    except:
+        pass
+    
     # save the image of histology
     path_img = os.path.join(dir_path, 'notebooks', 'temp', 'labels_GM_WM.png')
     Image.fromarray(measurement.labels_GM_WM_contour).save(path_img)
@@ -101,7 +110,6 @@ def save_imgs_alignment(measurement):
     # img_histology.save()
     path_img = os.path.join(dir_path, 'notebooks', 'temp', 'polarimetry.png')
     measurement.img_polarimetry_gs_650.save(path_img)
-    
     
 def get_mp_fp(measurement: FolderAlignHistology):
     """
@@ -145,17 +153,6 @@ def align_images_py(measurement: FolderAlignHistology):
         
     mp_fp = mp_fp[frozenset(get_positions(measurement).items())]
     return mp_fp
-    ptsA = mp_fp['mp']
-    ptsB = mp_fp['fp']
-    matched_points = {}
-    for ptA, ptB in zip(ptsA, ptsB):
-        matched_points[tuple(ptB)] = tuple(ptA)
-        
-    # call the function warp_img
-    # imgs = warp_img(matched_points, [np.asarray(measurement.registration_img), np.asarray(measurement.registration_labels_img),
-                                    # np.asarray(measurement.registration_labels_GM_WM_img)])
-    imgs = warp_img(matched_points, [measurement.histology_contour, measurement.labels_contour, measurement.labels_GM_WM_contour])
-    [measurement.histology_aligned, measurement.labels_aligned, measurement.labels_GM_WM_aligned] = imgs
     
     
 def align_images_imgj(measurement: FolderAlignHistology):

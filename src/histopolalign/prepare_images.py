@@ -37,8 +37,6 @@ def create_the_alignments(histology_path: str, polarimetry_path: str, Verbose: b
     
     # get dictionnaries containing the links between the histology and polarimetry images
     fnames_links = get_link_dicts(histology_path, polarimetry_path)
-    print(fnames_links)
-    
     # create the FolderAlignHistology objects
     for folder in folder_paths:
         measurement = FolderAlignHistology(folder, fnames_links)
@@ -49,7 +47,6 @@ def create_the_alignments(histology_path: str, polarimetry_path: str, Verbose: b
             alignment_measurements.append(measurement)
         except AttributeError:
             pass
-    
     end = time.time()
     if Verbose:
         print("Create the alignment objects: {:.3f} seconds.".format(end - start))
@@ -573,7 +570,7 @@ class FolderAlignHistology:
             self.y_offest = int(data.y.get())
             
             
-def load_and_preprocess_imgs(alignment_measurements: list, threshold_min: int = 20, threshold_max: int = 200, force_recompute: bool = False, Verbose: bool = False):
+def load_and_preprocess_imgs(alignment_measurements: list, force_recompute: bool = False, Verbose: bool = False):
     """
     load_and_preprocess_imgs is the master function to load and pre-process the images of interest
 
@@ -595,7 +592,7 @@ def load_and_preprocess_imgs(alignment_measurements: list, threshold_min: int = 
     """
     
     # iterate over the FolderAlignHistology objects
-    for measurement in tqdm(alignment_measurements):
+    for measurement in (tqdm(alignment_measurements) if Verbose else alignment_measurements):
         
         start_all = time.time()
         # get the center of mass, histology images, slice number, slice index and HORAO index
