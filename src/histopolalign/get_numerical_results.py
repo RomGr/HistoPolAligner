@@ -69,7 +69,7 @@ def create_final_labels(measurement: FolderAlignHistology):
     measurement.img_labels_final = img_labels_final
 
 
-def get_numerical_values(measurement, wavelength = '550nm'):
+def get_numerical_values(measurement: FolderAlignHistology, wavelength: str = '550nm'):
     """
     get_numerical_values is the function used to extract the numerical values from the MM for the different tissue regions
 
@@ -118,7 +118,7 @@ def get_numerical_values(measurement, wavelength = '550nm'):
     return [depolarization_values, retardance_values, azimuth_values]
         
         
-def combine_the_results(measurement, wavelength = '550nm'):
+def combine_the_results(measurement: FolderAlignHistology, wavelength: str = '550nm'):
     """
     combine_the_results is used to combine the numerical values for the different tissue regions into the TCC mask only
     for the different measurements and save them in pickle files

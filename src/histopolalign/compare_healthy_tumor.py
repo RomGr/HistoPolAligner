@@ -582,7 +582,7 @@ def get_number_of_samples_tcp(path_folders: list):
 
 
 
-def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: list, GM_WM: tuple, WM: bool, path_save: str):
+def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: list, WM: bool, path_save: str):
     """
     plot_histograms_methods is used to plot the histograms used to generate the figure in the methods
 
@@ -623,14 +623,9 @@ def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: li
         elif idx_plt == 2:
             x_txt, y_txt = 0.5, 1.1
             txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
-        if WM:
-            plot_one_histogram(values_healthy[param], ax, 255, n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt, 
-                            'green', 'TF WM', txt)
-        else:
-            plot_one_histogram(values_healthy[param], ax, 128, n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt, 
-                            'green', 'TF GM', txt)
+        plot_one_histogram(values_healthy[param], ax, 255, n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt, 
+                            'darkgreen', 'TF WM', txt)
         
-        # plot the histogram of the neoplastic tissue
         if idx_plt == 0:
             x_txt, y_txt = 0.64, 1.1
             txt = "μ: {mean:.2f}\nσ: {std:.2f}\nm: {median:.2f}"
@@ -640,13 +635,38 @@ def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: li
         elif idx_plt == 2:
             x_txt, y_txt = 19.5, 1.1
             txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
-        if WM:
-            plot_one_histogram(tumor_values[param][GM_WM], ax, (255,0,0), n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt,
-                          'red', '70-100%', txt)
-        else:
-            plot_one_histogram(tumor_values[param][GM_WM], ax, (0,255,255), n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt,
-                          'red', '70-100%', txt)
+        plot_one_histogram(values_healthy[param], ax, 128, n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt, 
+                            'lime', 'TF GM', txt)
+        
 
+        # plot the histogram of the neoplastic tissue
+        if idx_plt == 0:
+            x_txt, y_txt = 0.78, 1.1
+            txt = "μ: {mean:.2f}\nσ: {std:.2f}\nm: {median:.2f}"
+        elif idx_plt == 1:
+            x_txt, y_txt = 20.5, 1.1
+            txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
+        elif idx_plt == 2:
+            x_txt, y_txt = 38.5, 1.1
+            txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
+        
+        plot_one_histogram(tumor_values[param][(153, 153, 0)], ax, (255,0,0), n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt,
+                          'red', '70-100% WM', txt)
+
+        if idx_plt == 0:
+            x_txt, y_txt = 0.92, 1.1
+            txt = "μ: {mean:.2f}\nσ: {std:.2f}\nm: {median:.2f}"
+        elif idx_plt == 1:
+            x_txt, y_txt = 32, 1.1
+            txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
+        elif idx_plt == 2:
+            x_txt, y_txt = 57, 1.1
+            txt = "μ: {mean:.1f}\nσ: {std:.1f}\nm: {median:.1f}"
+
+        plot_one_histogram(tumor_values[param][(153, 77, 0)], ax, (0,255,255), n_bins_azimuth, n_bins, ranged, idx_plt, x_txt, y_txt,
+                          'turquoise', '0-30% GM', txt)
+            
+            
         # plot the value of the noise in the azimuth in the background
         if idx_plt == 2:
             x_txt, y_txt = 57, 0.7
@@ -656,14 +676,15 @@ def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: li
                            'black', 'BG', txt)
         
         # create the legend
-        legend_properties = {'weight':'bold', 'size': 30}
+        legend_properties = {'weight':'bold', 'size': 26}
         
         if idx_plt == 0:
             leg = ax.legend(loc='best', bbox_to_anchor=(0.985, 0.6, 0, 0), prop=legend_properties)
             leg.get_frame().set_edgecolor('white')
-        else:
-            leg = ax.legend(loc='best', bbox_to_anchor=(1.40, 0.6, 0, 0), prop=legend_properties)
+        elif idx_plt == 1:
+            leg = ax.legend(loc='best', bbox_to_anchor=(1, 0.6, 0, 0), prop=legend_properties)
             leg.get_frame().set_edgecolor('white')
+
         
         ax.tick_params(axis='both', which='major', labelsize=18)
 
@@ -673,9 +694,12 @@ def plot_histograms_methods(values_healthy: dict, tumor_values: dict, params: li
         for tick in ax.yaxis.get_major_ticks():
             tick.label1.set_fontsize(26)
             tick.label1.set_fontweight('bold')
+        else:
+            leg = ax.legend(loc='best', bbox_to_anchor=(1, 0.6, 0, 0), prop=legend_properties)
+            leg.get_frame().set_edgecolor('white')
             
     # and save the plot
     plt.tight_layout()
     fig.savefig(path_save)
-    fig.savefig(path_save.replace('.png', '.pdf'))
+    fig.savefig(path_save.replace('.pdf', '.png'))
     plt.close()
