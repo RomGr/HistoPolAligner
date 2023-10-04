@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 # https://peps.python.org/pep-0621/
 [project]
-name = "HistoPolAlign"
+name = "PathologyPaper"
 description = "package description."
 readme = "README.md"
 requires-python = ">=3.8, <3.11"
@@ -29,5 +29,5 @@ sources = ["src"]
 test = ["pytest>=6.0"]
 
 [project.urls]
-homepage = "https://github.com/RomGr/HistoPolAlign"
-repository = "https://github.com/RomGr/HistoPolAlign"
+homepage = "https://github.com/RomGr/PathologyPaper"
+repository = "https://github.com/RomGr/PathologyPaper"
