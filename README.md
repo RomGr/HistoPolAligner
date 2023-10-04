@@ -1,4 +1,4 @@
-# HistoPolAlign
+# PathologyPaper
 
 [![License](https://img.shields.io/pypi/l/PathologyPaper.svg?color=green)](https://github.com/RomGr/PathologyPaper/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/PathologyPaper.svg?color=green)](https://pypi.org/project/PathologyPaper)
