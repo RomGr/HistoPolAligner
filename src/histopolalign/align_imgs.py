@@ -4,7 +4,6 @@ import os, shutil
 import matplotlib.pyplot as plt
 import pickle
 import scipy.io as sio
-import skimage.morphology as morphology
 
 from histopolalign.prepare_images import FolderAlignHistology
 

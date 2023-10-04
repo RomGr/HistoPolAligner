@@ -1,9 +1,11 @@
 import time
+import os
 from tqdm import tqdm
 import numpy as np
 import cv2
 import skimage
 from PIL import Image
+import skimage.morphology as morphology
 import random
 random.seed(0)
 
@@ -124,24 +126,29 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
     color_code_link = load_color_code_links()
     color_code_link_GM_WM = load_color_code_links(GM_WM = True)
     
-    # load the parameters for the histogram plots
+    # load the color maps
     color_map = load_color_maps()
     color_map_GM_WM = load_color_maps(GM_WM = True)
 
+    # correct the labels after the use of ImageJ
     labels = measurement.labels_aligned_blobed
     labels = correct_after_imageJ(labels, color_map)
     labels_GM_WM = measurement.labels_GM_WM_aligned_blobed
     labels_GM_WM = correct_after_imageJ(labels_GM_WM, color_map_GM_WM)
     
+    # convert the images to grayscale
     labels_L = np.array(Image.fromarray(measurement.labels_aligned_blobed.astype(np.uint8)).convert('L'))
     labels_GM_WM_L = np.array(Image.fromarray(measurement.labels_GM_WM_aligned_blobed.astype(np.uint8)).convert('L'))
     
+    # initialize the images to be returned
     img_labels_propagated = np.zeros(labels.shape)
     img_labels_propagated_GM_WM = np.zeros(labels_GM_WM.shape)
 
+    # find the nonzero pixels and sample them to speed up the process
     nonzero = cv2.findNonZero(labels_L)
     nonzero = np.array(random.sample(list(nonzero), round(len(nonzero) / val)))
     
+    # do the same for the GM/WM mask
     nonzero_WM_GM = cv2.findNonZero(labels_GM_WM_L)
     try:
         nonzero_WM_GM = np.array(random.sample(list(nonzero_WM_GM), round(len(nonzero_WM_GM) / val)))
@@ -149,7 +156,7 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
     except:
         process_WM_GM = False
 
-    # precompute the distances
+    # precompute the distances to speed up the process
     distances_1st_axis = {}
     for idx in range(labels_L.shape[1]):
         distances_1st_axis[idx] = (nonzero[:,:,0] - idx) **2
@@ -158,7 +165,7 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
         distances_2nd_axis[idx] = (nonzero[:,:,1] - idx) **2
         
     if process_WM_GM:
-        # precompute the distances
+        # precompute the distances to speed up the process
         distances_1st_axis_GM_WM = {}
         for idx in range(labels_GM_WM_L.shape[1]):
             distances_1st_axis_GM_WM[idx] = (nonzero_WM_GM[:,:,0] - idx) **2
@@ -166,32 +173,41 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
         for idx in range(labels_GM_WM_L.shape[1]):
             distances_2nd_axis_GM_WM[idx] = (nonzero_WM_GM[:,:,1] - idx) **2
     
+    # get the foreground region of the polarimetry images
     ROI = np.array(Image.open(measurement.annotation_path))
     
+    # iterate over the different pixels
     for idx, x in enumerate(ROI):
         for idy, y in enumerate(x):
             if y == 0:
                 pass
             else:
+                # if we are in the foreground region
                 new_labeled = None
-                # generate the label for the labels
+                
+                # 1. If the label is not nothing, we keep the label
                 if sum(labels[idx, idy]) != 0:
                     new_label = labels[idx, idy].astype(np.uint8)
                     new_labeled = [idx, idy]
                 else:
+                    # 2. otherwise we find the closest point with a valid label
                     target = (idx, idy)
                     new_labeled = find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis, distance = 5)
                     new_label = find_new_labels(new_labeled, labels, color_code_link)
                     counter = 0
+                    
+                    # 3. and if it was not found in a radius of 5 pixels, we extend the search
                     while sum(new_label) == 0:
                         distance = 25 * (counter+1)
                         new_labeled = find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis, distance = distance)
                         new_label = find_new_labels(new_labeled, labels, color_code_link)
                         counter += 1
                         
+                # set the new label
                 img_labels_propagated[idx, idy] = new_label
                     
                 if process_WM_GM:
+                    # perform the same operations for the GM/WM mask
                     if sum(labels_GM_WM[idx, idy]) != 0:
                         new_label = labels_GM_WM[idx, idy].astype(np.uint8)
                     else:
@@ -206,52 +222,60 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
                             counter += 1
                         
                         target = (idx, idy)
-                        
                     
                     img_labels_propagated_GM_WM[idx, idy] = np.array(new_label).astype(np.uint8)
 
+    # change the type of the images
     img_labels_propagated = img_labels_propagated.astype(np.uint8)
     img_labels_propagated_GM_WM = img_labels_propagated_GM_WM.astype(np.uint8)
+    
+    # add them to the FolderAlignHistology object
     measurement.img_labels_propagated = img_labels_propagated
     measurement.img_labels_propagated_GM_WM = img_labels_propagated_GM_WM
+    
+    # and return the images
     return img_labels_propagated, img_labels_propagated_GM_WM
 
 
-def correct_after_imageJ(labels, color_maps):
+def correct_after_imageJ(labels: np.array, color_maps: dict):
+    """
+    correct_after_imageJ is a function correcting the labels after the use of ImageJ, as some labels will be slightly different from the original ones due to the bUnwarpJ plugin
+
+    Parameters
+    ----------
+    labels : np.array
+        the labels to be corrected
+    color_maps : dict
+        the color maps between the labels and the RGB color values
+
+    Returns
+    -------
+    finalized : np.array
+        the corrected labels
+    """
     finalized = np.zeros(labels.shape)
     
+    # iterate over the different colors
     for type_, colors in color_maps.items():
         if type_ != 'Background':
+            
+            # get the pixels corresponding to the color
             label = (np.sum(labels == colors['RGB'], axis = 2) == 3).astype(np.uint8)
 
+            # apply some morphological operations to smoothen the labels and close the gaps
             kernel = np.ones((5, 5), np.uint8)
             image = cv2.erode(label, kernel) 
             image = cv2.dilate(image, kernel, cv2.BORDER_REFLECT, iterations = 2) 
             image = morphology.area_closing(image, area_threshold = 64, connectivity=2)
 
+            # add the pixels to the final labels
             for idx, idy in zip(np.where(image == 1)[0], np.where(image == 1)[1]):
                 finalized[idx, idy] = colors['RGB']
     
     return finalized
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis):
+def find_nearest_white(nonzero: np.array, target: tuple, distances_1st_axis: dict, distances_2nd_axis: dict, bd: bool = False, distance: int = 5):
     """
     find the nearest pixel to target which is in the nonzero array
 
@@ -261,26 +285,81 @@ def find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis):
         the array containing the indexes of the pixels of interest
     target : tuple
         the target pixel coordinates
+    distances_1st_axis, distances_2nd_axis : dict, dict
+        the precomputed distances to speed up the process
+    bd : bool
+        whether to return the closest pixel or the closest pixels (default is False)
+    distance : int
+        the maximum distance to be considered (default is 5)
 
     Returns
     -------
-    nonzero[nearest_index] : tuple
+    nonzero[all_nearest] : tuple
         the closest pixel to target which is in the nonzero array
     """
     distances = distances_1st_axis[target[1]] + distances_2nd_axis[target[0]]
-    distances = distances.reshape(distances.shape[0],)
-    all_nearest = np.argpartition(distances,5)[:5]
-    return nonzero[all_nearest]
+    if not bd:
+        distances = distances.reshape(distances.shape[0],)
+        all_nearest = np.argpartition(distances,distance)[:distance]
+        return nonzero[all_nearest]
+    elif bd:
+        nearest_index = np.argmin(distances)
+        return nonzero[nearest_index]
 
-def get_final_mask(measurement, wavelength = '550'):
+
+def get_mask_border(measurement: FolderAlignHistology, distance: int = 10):
+    """
+    is used to get the mask for the foreground region of the polarimetry images and to remove the border of the image to avoid any artifacts
+
+    Parameters
+    ----------
+    measurement : FolderAlignHistology
+        the FolderAlignHistology object containing the image to be masked
+    distance : int
+        the distance to remove (default = 10)
+
+    Returns
+    -------
+    image : np.array
+        an array containing the pixels to keep and to remove
+    """
+    img = (np.sum(measurement.labels_final, axis = 2) != 0).astype(np.uint8)
+
+    # Creating kernel
+    kernel = np.ones((distance, distance), np.uint8)
+    
+    # Using cv2.erode() method 
+    image = cv2.erode(img, kernel) 
+                
+    return image
+
+
+def get_final_mask(measurement: FolderAlignHistology, wavelength: str = '550'):
+    """
+    is the master function used to overlay the final labels on the polarimetry images
+
+    Parameters
+    ----------
+    measurement : FolderAlignHistology
+        the FolderAlignHistology object containing the information about the different measurements
+    wavelength : str
+        the wavelength of the measurement (default is '550')
+
+    Returns
+    -------
+    """
+    # load the Mueller Matrix
     path_polarimetry = measurement.folder_path
     path_histology_polarimetry = measurement.path_histology_polarimetry
-    MM = np.load(os.path.join(path_polarimetry, 'polarimetry', '550nm', 'MM.npz'))
+    MM = np.load(os.path.join(path_polarimetry, 'polarimetry', wavelength + 'nm', 'MM.npz'))
     mask = MM['Msk']
     mask = np.ones(mask.shape)
     
+    # get the labels and the border mask
     img_labels_propagated, img_labels_propagated_GM_WM = measurement.labels_final, measurement.labels_GM_WM_final
     mask_border = measurement.mask_border
+    
+    # remove the border based on the mask_border computed previously
     img_labels_propagated_kept = np.zeros(img_labels_propagated.shape)
     for idx, x in enumerate(img_labels_propagated):
         for idy, y in enumerate(x):
@@ -291,6 +370,7 @@ def get_final_mask(measurement, wavelength = '550'):
                     img_labels_propagated_kept[idx, idy] = y
     img_labels_propagated = img_labels_propagated_kept.astype(np.uint8)
     
+    # same thing for the GM/WM mask
     img_labels_propagated_kept = np.zeros(img_labels_propagated_GM_WM.shape)
     for idx, x in enumerate(img_labels_propagated_GM_WM):
         for idy, y in enumerate(x):
@@ -301,11 +381,13 @@ def get_final_mask(measurement, wavelength = '550'):
                     img_labels_propagated_kept[idx, idy] = y
     img_labels_propagated_GM_WM = img_labels_propagated_kept.astype(np.uint8)
     
+    # create an image for the labels
     Image.fromarray(img_labels_propagated).save(os.path.join(path_histology_polarimetry, 
                                                                  'labels_augmented_masked.png'))
     Image.fromarray(img_labels_propagated_GM_WM).save(os.path.join(path_histology_polarimetry, 
                                                                    'labels_augmented_GM_WM_masked.png'))
     
+    # overlay the labels on the polarimetry images
     overlay_img(measurement.img_polarimetry_gs,
                 img_labels_propagated, 
                 os.path.join(path_histology_polarimetry, 'overlay_final_masked.png'))
@@ -316,7 +398,23 @@ def get_final_mask(measurement, wavelength = '550'):
     measurement.labels_final = img_labels_propagated
     measurement.labels_GM_WM_final = img_labels_propagated_GM_WM
 
-def overlay_img(path_bg, path_fg, save_path):
+
+def overlay_img(path_bg: str, path_fg: str, save_path: str):
+    """
+    is the function used to overlay one image witg another
+
+    Parameters
+    ----------
+    path_bg : str
+        the path to the background image
+    path_fg : str
+        the path to the foreground image
+    save_path : str
+        the path to save the overlayed image
+
+    Returns
+    -------
+    """
     if type(path_bg) == str:
         background = Image.open(path_bg)
     elif type(path_bg) == np.ndarray:
@@ -330,6 +428,7 @@ def overlay_img(path_bg, path_fg, save_path):
     else:
         overlay = path_fg
 
+    # convert the images to RGBA to allow blending
     background = background.convert("RGBA")
     overlay = overlay.convert("RGBA")
 
@@ -337,6 +436,58 @@ def overlay_img(path_bg, path_fg, save_path):
     new_img.save(save_path,"PNG")
     
     
+def save_all_combined_maps(measurement):
+    
+    make_overlays_maps(measurement)
+    
+    figures = ['Depolarization_img 550nm.png', 'Azimuth of optical axis_img 550nm.png', 
+               'Intensity_img 550nm.png', 'Linear retardance_img 550nm.png']
+    name = 'combined_550.png'
+    save_combined_img(figures, name, os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
+    
+    figures = ['Depolarization_img 550nmGM_WM.png', 'Azimuth of optical axis_img 550nmGM_WM.png', 
+               'Intensity_img 550nmGM_WM.png', 'Linear retardance_img 550nmGM_WM.png']
+    name = 'combined_550_GM_WM.png'
+    save_combined_img(figures, name, os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
+    
+                        
+def save_combined_img(figures, name, path_histology_polarimetry):
+    path = path_histology_polarimetry
+    
+    titles = ['Depolarization', 'Azimuth of optical axis (°)', 'Intensity', 'Linear retardance']
+
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12,7))
+    for idx, (fig, title) in enumerate(zip(figures, titles)):
+        row = idx%2
+        col = idx//2
+        ax = axes[row, col]
+        ax.axis('off')
+        img = plt.imread(os.path.join(path, fig))
+        ax.imshow(img)
+        ax.set_title(title, fontsize="20", fontweight="bold")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(path, name))
+    plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -379,6 +530,21 @@ def find_new_labels(new_labeled, labels, color_code_link, WM = False):
 
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 def find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis, bd = False, distance = 5):
@@ -408,39 +574,7 @@ def find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis, 
 
 
 
-def save_all_combined_maps(measurement):
-    
-    make_overlays_maps(measurement)
-    
-    figures = ['Depolarization_img 550nm.png', 'Azimuth of optical axis_img 550nm.png', 
-               'Intensity_img 550nm.png', 'Linear retardance_img 550nm.png']
-    name = 'combined_550.png'
-    save_combined_img(figures, name, os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
-    
-    figures = ['Depolarization_img 550nmGM_WM.png', 'Azimuth of optical axis_img 550nmGM_WM.png', 
-               'Intensity_img 550nmGM_WM.png', 'Linear retardance_img 550nmGM_WM.png']
-    name = 'combined_550_GM_WM.png'
-    save_combined_img(figures, name, os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
-    
-                        
-def save_combined_img(figures, name, path_histology_polarimetry):
-    path = path_histology_polarimetry
-    
-    titles = ['Depolarization', 'Azimuth of optical axis (°)', 'Intensity', 'Linear retardance']
 
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12,7))
-    for idx, (fig, title) in enumerate(zip(figures, titles)):
-        row = idx%2
-        col = idx//2
-        ax = axes[row, col]
-        ax.axis('off')
-        img = plt.imread(os.path.join(path, fig))
-        ax.imshow(img)
-        ax.set_title(title, fontsize="20", fontweight="bold")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, name))
-    plt.close()
     
     
 def make_overlays_maps(measurement):
@@ -522,30 +656,5 @@ def make_overlay(background, overlay, fname, alpha = 0.1):
 
 
 
-def get_mask_border(measurement, distance = 10):
-    """
-    is used to remove the border of the image (i.e. remove the possible border effect for the sample)
-
-    Parameters
-    ----------
-    img_labels_propagated : Pillow Image
-        the final labels image
-    distance : int
-        the distance to remove (default = 30)
-
-    Returns
-    -------
-    mask_border : np.array
-        an array containing the pixels to keep and to remove
-    """
-    img = (np.sum(measurement.labels_final, axis = 2) != 0).astype(np.uint8)
-
-    # Creating kernel
-    kernel = np.ones((distance, distance), np.uint8)
-    
-    # Using cv2.erode() method 
-    image = cv2.erode(img, kernel) 
-                
-    return image
 
 

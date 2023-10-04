@@ -114,7 +114,7 @@ def load_wavelengths():
 
 def load_color_maps(GM_WM: bool = False):
     """
-    load and returns the parameters for the histogram plots
+    load and returns the color maps
 
     Parameters
     -------
@@ -123,8 +123,8 @@ def load_color_maps(GM_WM: bool = False):
         
     Returns
     -------
-    parameters_map : dict
-        the parameters to plot the parameters histograms
+    data : dict
+        the color maps
     """
     dir_path = os.path.dirname(os.path.realpath(__file__))
     if GM_WM:
