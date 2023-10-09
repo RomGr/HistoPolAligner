@@ -84,9 +84,7 @@ def compute_similarity(data_folder):
     for folder in tqdm(data_folder):
         image_gt_path = os.path.join(folder, 'annotation', 'merged.png')
         image_gt = np.array(Image.open(image_gt_path))
-        
-        img_ROI = np.array(Image.open(os.path.join(folder, 'annotation', 'ROI.tif')))
-        
+                
         image_labels_raw_path = os.path.join(folder, 'histology', 'labels_GM_WM_original.png')
         image_labels_raw = np.array(Image.open(image_labels_raw_path))
         
@@ -141,3 +139,5 @@ def compute_similarity(data_folder):
             overimposed.save(os.path.join(folder, 'histology', 'overimposed_' + key + '.png'))
             
         dice_scores[folder] = dice_score
+        
+    return dice_scores
