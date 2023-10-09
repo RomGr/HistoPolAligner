@@ -76,18 +76,18 @@ def create_the_alignment_folder(measurement: FolderAlignHistology, Verbose: bool
     prepare_the_alignment_folder(measurement)
     
 
-def save_the_images_into_polarimetry_folders(measurement):
+def save_the_images_into_polarimetry_folders(measurement: FolderAlignHistology):
     """
     save all the images in the given folder
 
     Parameters
     ----------
-    path_pol_save : str
-        the path in which the images should be saved
-    images : list
-        the list of images to be saved
+    measurement : FolderAlignHistology
+        the FolderAlignHistology containing the information and the images about the measurement 
     """
     path_pol_save = measurement.path_histology_polarimetry
+    
+    # save the registration, labels and labels_GM_WM images
     measurement.registration_img.save(os.path.join(path_pol_save, 'registration.png'))
     measurement.registration_labels_img.save(os.path.join(path_pol_save, 'labels.png'))
     measurement.registration_labels_GM_WM_img.save(os.path.join(path_pol_save, 'labels_GM_WM.png'))
@@ -133,23 +133,9 @@ def prepare_the_alignment_folder(measurement: FolderAlignHistology):
                             Image.Resampling.NEAREST).save(os.path.join(folder_name, 'polarimetry.png'))
     measurement.img_polarimetry_gs_650.resize((516, 388), 
                             Image.Resampling.NEAREST).save(os.path.join(folder_name, 'polarimetry_650.png'))
-
-    # create the propagation mask and save them
-    # create_propagation_mask(measurement.registration_labels_img, folder_name)
-    # create_propagation_mask(measurement.registration_labels_GM_WM_img, folder_name, GM_WM = True)
-    
-        
-def get_positions(measurement):
-    positions = {}
-    positions['angle'] = measurement.angle 
-    positions['rotation'] = measurement.flip
-    positions['shrink'] = measurement.shrink
-    positions['x_offest'] = measurement.x_offest
-    positions['y_offest'] = measurement.y_offest
-    return positions
     
     
-def semi_automatic_processing(alignment_measurements):
+def semi_automatic_processing(alignment_measurements: list):
     """
     semi_automatic_processing is called to ask the pairs of landmarks points to the user using matlab
     
@@ -158,8 +144,6 @@ def semi_automatic_processing(alignment_measurements):
     alignment_measurements : list
         the list of FolderAlignHistology containing the information and the images about the measurements
     """
-    
-    
     # check if one matlab engine should be started or not
     process_need = False
     for measurement in alignment_measurements:
@@ -244,6 +228,29 @@ def semi_automatic_processing(alignment_measurements):
         eng.quit()
         
         
+def get_positions(measurement: FolderAlignHistology):
+    """
+    get_positions returns the parameters for the re-alignement tool of the histology images
+
+    Parameters
+    ----------
+    measurement : FolderAlignHistology
+        the FolderAlignHistology containing the information and the images about the measurement
+
+    Returns
+    -------
+    positions : dict
+        the parameters for the re-alignement tool of the histology images
+    """
+    positions = {}
+    positions['angle'] = measurement.angle 
+    positions['rotation'] = measurement.flip
+    positions['shrink'] = measurement.shrink
+    positions['x_offest'] = measurement.x_offest
+    positions['y_offest'] = measurement.y_offest
+    return positions
+    
+    
 def create_propagation_mask(image: Image, folder_name: str, GM_WM: bool = False):
     """
     create_propagation_mask changes the color format from RGB to grayscale (maps RGB color to uint values)

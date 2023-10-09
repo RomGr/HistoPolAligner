@@ -10,11 +10,8 @@ from rembg import remove
 import time
 import traceback
 
-from histopolalign.helpers import load_wavelengths, load_position_names, compare_two_lists
+from histopolalign.helpers import load_position_names, compare_two_lists
 from histopolalign.semi_automatic_tool import process_image_pathology
-from histopolalign import semi_automatic_tool
-
-
 
 
 def get_folders_lacking_orientation(histology_path: str):
@@ -35,9 +32,6 @@ def get_folders_lacking_orientation(histology_path: str):
             else:
                 fnames_histology.append(os.path.join(histology_path, folder, fol))
     return fnames_histology, fnames_histology_processed
-
-
-
 
 
 def get_the_images_and_center_of_mass(histology_path: str):
@@ -116,14 +110,6 @@ def get_filenames_histology(histology_path: str):
         for fol in os.listdir(os.path.join(histology_path, folder)):
             fnames_histology.append(os.path.join(histology_path, folder, fol))
     return fnames_histology
-
-
-
-
-
-
-
-
 
 
 def load_images_from_dict(fnames_histology_link):

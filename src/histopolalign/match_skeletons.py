@@ -1,12 +1,7 @@
 """
 Based on the work from 'Image deformation using moving least squares'
-
 @author: Jian-Wei ZHANG
 @email: zjw.cs@zju.edu.cn
-@date: 2017/8/8
-@update: 2020/9/25
-@update: 2021/7/14: Simplify usage
-@update: 2021/12/24: Fix bugs and add an example of random control points (see `demo2()`)
 """
 
 import numpy as np
@@ -16,7 +11,7 @@ from PIL import Image
 import cv2
 import os
 from histopolalign.MLS.img_utils import (
-    mls_similarity_deformation, mls_rigid_deformation
+    mls_rigid_deformation
 )
 import histopolalign.SkeletonMatching.skeletonContext as sc
 import numpy as np

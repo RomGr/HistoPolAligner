@@ -1,7 +1,6 @@
 import numpy as np
 from PIL import Image
 import os, shutil
-import matplotlib.pyplot as plt
 import pickle
 import scipy.io as sio
 

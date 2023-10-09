@@ -873,6 +873,7 @@ def resize_image_after_shrinkage(img: Image, shrink: int, old_shape: tuple):
         
         # do the cropping and return the image
         return Image.fromarray(img[x_min:x_max, y_min:y_max].astype(np.uint8))
+    
     else:
         img = np.asarray(img)
         assert shrink < 100
@@ -970,6 +971,8 @@ def count_pixels(matrix: Image):
     -------
     len(keys_signal) : int
         the number of different labels in the image
+    keys_signal : list
+        the list of the different labels in the image
     """
     all_pixels = []
         

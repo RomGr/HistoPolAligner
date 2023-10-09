@@ -6,6 +6,7 @@ import cv2
 import skimage
 from PIL import Image
 import skimage.morphology as morphology
+import matplotlib.pyplot as plt
 import random
 random.seed(0)
 
@@ -305,6 +306,57 @@ def find_nearest_white(nonzero: np.array, target: tuple, distances_1st_axis: dic
     elif bd:
         nearest_index = np.argmin(distances)
         return nonzero[nearest_index]
+    
+    
+def find_new_labels(new_labeled: list, labels: np.array, color_code_link: dict, WM: bool = False):
+    """
+    find_new_labels is the function finding the new labels for the pixels in the foreground region of the polarimetry images without any labels
+
+    Parameters
+    ----------
+    new_labeled : list
+        the list of the indexes of the closest pixels to the target with a valid label
+    labels : np.array
+        the array containing the labels of interest
+    color_code_link : dict
+        the color maps between the labels and the RGB color values
+    WM : bool
+        whether to use the GM/WM color maps or the tumor cell content one (default is False)
+
+    Returns
+    -------
+    list(most_frequent(all_labels)) : list
+        the new labels for the pixels in the foreground region of the polarimetry images without any labels
+    """
+    all_labels = []
+        
+    # iterate over the different pixels
+    for label in new_labeled:
+        idx_min, idy_min = label[0][1], label[0][0]
+        labeled = labels[idx_min, idy_min].astype(np.uint8)
+
+        # get the new label for the index of interest
+        new_label = None
+        for val in color_code_link.keys():
+            tot_distance = 0
+            for l, v in zip(labeled, val):
+                tot_distance += abs(l - v)
+            if tot_distance == 0:
+                new_label = list(val)
+                
+        if new_label == None:
+            distances = []
+            for val in color_code_link.keys():
+                tot_distance = 0
+                for l, v in zip(labeled, val):
+                    tot_distance += abs(l - v)
+                distances.append(tot_distance)
+            new_label = list(list(color_code_link.keys())[np.argmin(distances)])
+
+        # add the new label to the list of labels
+        all_labels.append(tuple(new_label))
+        
+    return list(most_frequent(all_labels))
 
 
 def get_mask_border(measurement: FolderAlignHistology, distance: int = 10):
@@ -436,7 +488,18 @@ def overlay_img(path_bg: str, path_fg: str, save_path: str):
     new_img.save(save_path,"PNG")
     
     
-def save_all_combined_maps(measurement):
+def save_all_combined_maps(measurement: FolderAlignHistology):
+    """
+    save_all_combined_maps is the function used to save the different images overlaying the different polarimetric maps with the final labels masks
+
+    Parameters
+    ----------
+    measurement : FolderAlignHistology
+        the FolderAlignHistology object containing the information about the measurement
+
+    Returns
+    -------
+    """
     
     make_overlays_maps(measurement)
     
@@ -449,182 +512,74 @@ def save_all_combined_maps(measurement):
                'Intensity_img 550nmGM_WM.png', 'Linear retardance_img 550nmGM_WM.png']
     name = 'combined_550_GM_WM.png'
     save_combined_img(figures, name, os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
-    
-                        
-def save_combined_img(figures, name, path_histology_polarimetry):
-    path = path_histology_polarimetry
-    
-    titles = ['Depolarization', 'Azimuth of optical axis (°)', 'Intensity', 'Linear retardance']
-
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12,7))
-    for idx, (fig, title) in enumerate(zip(figures, titles)):
-        row = idx%2
-        col = idx//2
-        ax = axes[row, col]
-        ax.axis('off')
-        img = plt.imread(os.path.join(path, fig))
-        ax.imshow(img)
-        ax.set_title(title, fontsize="20", fontweight="bold")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(path, name))
-    plt.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def find_new_labels(new_labeled, labels, color_code_link, WM = False):
-    all_labels = []
-        
-    for label in new_labeled:
-        idx_min, idy_min = label[0][1], label[0][0]
-            
-        if not WM:
-            labeled = labels[idx_min, idy_min].astype(np.uint8)
-        else:
-            labeled = labels[idx_min, idy_min].astype(np.uint8)
-
-        new_label = None
-        for val in color_code_link.keys():
-            tot_distance = 0
-            for l, v in zip(labeled, val):
-                tot_distance += abs(l - v)
-            if tot_distance == 0:
-                new_label = list(val)
-
-
-        if new_label == None:
-            distances = []
-            for val in color_code_link.keys():
-                tot_distance = 0
-                for l, v in zip(labeled, val):
-                    tot_distance += abs(l - v)
-                distances.append(tot_distance)
-            new_label = list(list(color_code_link.keys())[np.argmin(distances)])
-
-        all_labels.append(tuple(new_label))
-        
-    return list(most_frequent(all_labels))
-
-
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-def find_nearest_white(nonzero, target, distances_1st_axis, distances_2nd_axis, bd = False, distance = 5):
+def make_overlays_maps(measurement: FolderAlignHistology):
     """
-    find the nearest pixel to target which is in the nonzero array
+    creates an overlay for each of the polarimetric maps and saves them into the maps_aligned folder
 
     Parameters
     ----------
-    nonzero : np.array
-        the array containing the indexes of the pixels of interest
-    target : tuple
-        the target pixel coordinates
+    measurement : FolderAlignHistology
+        the FolderAlignHistology object containing the information about the measurement
 
     Returns
     -------
-    nonzero[nearest_index] : tuple
-        the closest pixel to target which is in the nonzero array
     """
-    distances = distances_1st_axis[target[1]] + distances_2nd_axis[target[0]]
-    if not bd:
-        distances = distances.reshape(distances.shape[0],)
-        all_nearest = np.argpartition(distances,distance)[:distance]
-        return nonzero[all_nearest]
-    elif bd:
-        nearest_index = np.argmin(distances)
-        return nonzero[nearest_index]
-
-
-
-
-    
-    
-def make_overlays_maps(measurement):
-    """
-    creates an overlay for each of the polarimetric maps
-
-    Parameters
-    ----------
-    path_histology_polarimetry : str
-        the path to the folder in the to_align subfolder
-    img_labels_propagated_RGB : Pillow Image
-        the final labels image in the RGB format
-    final_mask : boolean
-        indicates if we are working with the mask with the border removed (default = False)
-    """
+    # initialize a list with the names of the polarimetric maps images
     figures = ['Depolarization_img.png', 'Azimuth of optical axis_img.png', 
                'Intensity_img.png', 'Linear retardance_img.png']
     
+    # try to create the folder to save the images
     try:
         os.mkdir(os.path.join(measurement.path_histology_polarimetry, 'maps_aligned'))
     except:
          pass
     path_polarimetry = os.path.join(measurement.folder_path, 'polarimetry')
     
+    # iterate over the different wavelengths
     for wavelength in os.listdir(path_polarimetry):
+        
+        # we are only interested if the wavelength is 550nm for this study
         if '550nm' in wavelength:
             path_polarimetry_wl = os.path.join(path_polarimetry, wavelength)
+            
+            # iterate over the different polarimetric maps
             for file in os.listdir(path_polarimetry_wl):
+                
+                # if the file is one of the polarimetric maps, we create the overlay
                 if file in figures:
                     
+                    # the background image is the polarimetric map
                     background = Image.open(os.path.join(path_polarimetry_wl, file))
+                    
+                    # 1. ... and the foreground image is the final labels mask
                     overlay = measurement.labels_final
+                    
+                    # creae the name of the file to be saved
                     fname = os.path.join(measurement.path_histology_polarimetry, 'maps_aligned', 
                                             file.replace('.png', ' ' + wavelength + '.png'))
                     
+                    # create the overlay using a different transparency level for the intensity map
                     if 'Intensity' in file:
                         make_overlay(background, overlay, fname, alpha = 0.25)
                     else:
                         make_overlay(background, overlay, fname, alpha = 0.6)
                         
+                    # 2. ... and the foreground image is the final labels GM/WM mask
                     overlay = measurement.labels_GM_WM_final
 
+                    # create the overlay using a different transparency level for the intensity map
                     fname = os.path.join(measurement.path_histology_polarimetry, 'maps_aligned', 
                                     file.replace('.png', ' ' + wavelength + 'GM_WM.png'))
                     if 'Intensity' in file:
                         make_overlay(background, overlay, fname, alpha = 0.25)
                     else:
                         make_overlay(background, overlay, fname, alpha = 0.6)
+
+
                         
-def make_overlay(background, overlay, fname, alpha = 0.1):
+def make_overlay(background: Image, overlay: Image, fname: str, alpha: float = 0.1):
     """
     creates an overlay of background and overlay image
 
@@ -636,25 +591,62 @@ def make_overlay(background, overlay, fname, alpha = 0.1):
         the image to overlay on the background
     fname : str
         the path in which the image should be saved
-    pol_maps : boolean
-        indication of if we are working with polarimetric maps (in this case, crop the image - default = False)
     alpha : double
         the transparency level (default = 0.1)
     """
+    # convert the image to RGBA to allow blending
     background = background.convert('RGBA')
-    background.save('img.png')
     if type(overlay) == np.ndarray:
         overlay = Image.fromarray(overlay)
     else:
         pass
+    
+    # convert the image to RGBA to allow blending
     overlay = overlay.convert('RGBA')
+    
+    # blend the images and save the result
     new_img = Image.blend(background, overlay, alpha)
     new_img.save(fname)
        
            
+def save_combined_img(figures: list, name: str, path_histology_polarimetry: str):
+    """
+    save_combined_img creates the final image combining the 4 overlay of the polarimetric maps
 
+    Parameters
+    ----------
+    figures : list
+        the names of the different polarimetric maps files
+    name : str
+        the name of the final image
+    path_histology_polarimetry : str
+        the path in which to save the image
 
+    Returns
+    -------
+    """
+    path = path_histology_polarimetry
+    
+    # the titles of the different polarimetric maps 
+    titles = ['Depolarization', 'Azimuth of optical axis (°)', 'Intensity', 'Linear retardance']
 
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(12,7))
+    
+    # iterate over the different polarimetric maps
+    for idx, (fig, title) in enumerate(zip(figures, titles)):
+        
+        # get the axis to plot the current polarimetric map
+        row = idx%2
+        col = idx//2
+        ax = axes[row, col]
+        ax.axis('off')
+        
+        # plot the image on the axis
+        img = plt.imread(os.path.join(path, fig))
+        ax.imshow(img)
+        ax.set_title(title, fontsize="20", fontweight="bold")
 
-
-
+    # save the figure
+    plt.tight_layout()
+    plt.savefig(os.path.join(path, name))
+    plt.close()
