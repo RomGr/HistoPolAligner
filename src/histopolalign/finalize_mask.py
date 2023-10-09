@@ -55,6 +55,8 @@ def generate_final_masks(alignment_measurements: list, Verbose: bool = False):
         end = time.time()
         if Verbose:
             print("save_all_combined_maps: {:.3f} seconds.".format(end - start))
+            
+        measurement.labels_GM_WM_cropped.save(os.path.join(measurement.folder_path, 'labels_GM_WM_original.png'))
     
     
 def get_biggest_blob(measurement):

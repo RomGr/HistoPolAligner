@@ -5,7 +5,7 @@ from histopolalign import combine_images, prepare_images, semi_automatic_tool, a
 
 def align_measurements():
     neoplastic_polarimetry_path = os.path.join(os.getcwd().split('notebooks')[0], 'data', 'TumorMeasurements')
-    for folder in tqdm(os.listdir(neoplastic_polarimetry_path)):
+    for folder in tqdm(os.listdir(neoplastic_polarimetry_path)[5:]):
         assert len(os.listdir(os.path.join(neoplastic_polarimetry_path, folder))) > 0, 'No measurements in folder {}'.format(folder)
         align_single_measurement(folder, neoplastic_polarimetry_path = neoplastic_polarimetry_path)
     
