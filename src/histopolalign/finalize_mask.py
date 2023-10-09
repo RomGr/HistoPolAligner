@@ -30,7 +30,7 @@ def generate_final_masks(alignment_measurements: list, Verbose: bool = False):
     nonzero[nearest_index] : tuple
         the closest pixel to target which is in the nonzero array
     """
-    for measurement in tqdm(alignment_measurements):
+    for measurement in (tqdm(alignment_measurements) if Verbose else alignment_measurements):
         get_biggest_blob(measurement)
 
         start = time.time()

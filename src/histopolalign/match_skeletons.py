@@ -6,7 +6,7 @@ Based on the work from 'Image deformation using moving least squares'
 
 import numpy as np
 import math
-from skimage import measure, io
+from skimage import measure
 from PIL import Image
 import cv2
 import os

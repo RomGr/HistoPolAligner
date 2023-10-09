@@ -31,7 +31,7 @@ def create_align_folders(alignment_measurements: list, Verbose: bool = False):
     except FileNotFoundError:
         pass
 
-    for measurement in tqdm(alignment_measurements):
+    for measurement in tqdm(alignment_measurements) if Verbose else alignment_measurements:
         create_the_alignment_folder(measurement, Verbose = Verbose)
         
     
