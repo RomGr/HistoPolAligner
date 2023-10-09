@@ -21,9 +21,6 @@ def get_and_plots_stds(measurements: list, sq_size: int = 4):
         path_polarimetry = os.path.join(folder, 'polarimetry', '550nm')
         azimuth = np.load(os.path.join(path_polarimetry, 'MM.npz'))['azimuth']
         
-        path_annotation = os.path.join(folder, 'annotation', 'ROI.tif')
-        ROI = np.asarray(Image.open(path_annotation))
-        
         azimuth_std = np.zeros((round(azimuth.shape[0]), round(azimuth.shape[1])))
         for idx in range(0, len(azimuth), 1):
             for idy in range(0, len(azimuth[0]), 1):
@@ -37,13 +34,17 @@ def get_and_plots_stds(measurements: list, sq_size: int = 4):
                 except:
                     pass
         
-        path_mask = os.path.join(folder, 'histology', 'labels_augmented_GM_WM_masked.png')
-        mask = np.asarray(Image.open(path_mask))
-        
         azimuth_std[azimuth_std > 40] = 40
         azimuth_stds[folder] = azimuth_std
-        plot_azimuth_noise(azimuth_std, folder, mask)
-        
+        try:
+            path_mask = os.path.join(folder, 'histology', 'labels_augmented_GM_WM_masked.png')
+            mask = np.asarray(Image.open(path_mask))
+            plot_azimuth_noise(azimuth_std, folder, mask)
+        except:
+            path_mask = os.path.join(folder, 'annotation', 'merged.png')
+            mask = np.asarray(Image.open(path_mask))
+            plot_azimuth_noise(azimuth_std, folder, mask, healthy= True)
+                
         plt.close()
         
     return azimuth_stds

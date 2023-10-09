@@ -56,7 +56,11 @@ def generate_final_masks(alignment_measurements: list, Verbose: bool = False):
         if Verbose:
             print("save_all_combined_maps: {:.3f} seconds.".format(end - start))
             
-        measurement.labels_GM_WM_cropped.save(os.path.join(measurement.folder_path, 'labels_GM_WM_original.png'))
+        measurement.labels_GM_WM_cropped.save(os.path.join(measurement.folder_path, 'histology', 'labels_GM_WM_original.png'))
+        try:
+            os.remove(os.path.join(measurement.folder_path, 'labels_GM_WM_original.png'))
+        except:
+            pass
     
     
 def get_biggest_blob(measurement):
@@ -215,11 +219,11 @@ def create_the_image_labels_propagated(measurement: FolderAlignHistology, val: i
                         new_label = labels_GM_WM[idx, idy].astype(np.uint8)
                     else:
                         target = (idx, idy)
-                        new_labeled = find_nearest_white(nonzero_WM_GM, target, distances_1st_axis_GM_WM, distances_2nd_axis_GM_WM, distance = 5)
+                        new_labeled = find_nearest_white(nonzero_WM_GM, target, distances_1st_axis_GM_WM, distances_2nd_axis_GM_WM, distance = 1)
                         new_label = find_new_labels(new_labeled, labels_GM_WM, color_code_link_GM_WM, WM = True)
                         counter = 0
                         while sum(new_label) == 0:
-                            distance = 25 * (counter+1)
+                            distance = 2 * (counter+1)
                             new_labeled = find_nearest_white(nonzero_WM_GM, target, distances_1st_axis_GM_WM, distances_2nd_axis_GM_WM, distance = distance)
                             new_label = find_new_labels(new_labeled, labels_GM_WM, color_code_link_GM_WM, WM = True)
                             counter += 1
@@ -258,24 +262,51 @@ def correct_after_imageJ(labels: np.array, color_maps: dict):
     """
     finalized = np.zeros(labels.shape)
     
+    all_values = []
+    for _, colors in color_maps.items():
+        label = (np.sum(labels == colors['RGB'], axis = 2) == 3).astype(np.uint8)
+        if np.sum(label == 1) > 0.02 * labels.shape[0] * labels.shape[1]:
+            all_values.append(tuple(colors['RGB']))
+    all_values = set(all_values)
+
+    for idx, x in enumerate(labels):
+        for idy, y in enumerate(x):
+            if tuple(y) in all_values:
+                finalized[idx, idy] = y
+            else:
+                if sum(y) == 0:
+                    pass
+                else:
+                    distance = 3 * 255
+                    label = None
+                    for val in all_values:
+                        if np.sum(np.abs(y - np.array(val))) < distance:
+                            label = val
+                            distance = np.sum(np.abs(y - np.array(val)))
+                        else:
+                            pass
+                    finalized[idx, idy] = label
+                   
+    smoothed = np.zeros(labels.shape)
+    
     # iterate over the different colors
     for type_, colors in color_maps.items():
         if type_ != 'Background':
             
             # get the pixels corresponding to the color
-            label = (np.sum(labels == colors['RGB'], axis = 2) == 3).astype(np.uint8)
+            label = (np.sum(finalized == colors['RGB'], axis = 2) == 3).astype(np.uint8)
 
             # apply some morphological operations to smoothen the labels and close the gaps
-            kernel = np.ones((5, 5), np.uint8)
+            kernel = np.ones((3, 3), np.uint8)
             image = cv2.erode(label, kernel) 
-            image = cv2.dilate(image, kernel, cv2.BORDER_REFLECT, iterations = 2) 
+            image = cv2.dilate(image, kernel, cv2.BORDER_REFLECT) 
             image = morphology.area_closing(image, area_threshold = 64, connectivity=2)
 
             # add the pixels to the final labels
             for idx, idy in zip(np.where(image == 1)[0], np.where(image == 1)[1]):
-                finalized[idx, idy] = colors['RGB']
+                smoothed[idx, idy] = colors['RGB']
     
-    return finalized
+    return smoothed
 
 
 def find_nearest_white(nonzero: np.array, target: tuple, distances_1st_axis: dict, distances_2nd_axis: dict, bd: bool = False, distance: int = 5):

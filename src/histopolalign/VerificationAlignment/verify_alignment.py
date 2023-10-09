@@ -98,12 +98,8 @@ def compute_similarity(data_folder):
         image_labels_aligned = np.array(Image.open(image_labels_aligned_path))
         image_labels_aligned = create_image_labels_final(image_labels_aligned, colors = [[153, 153, 0], [153, 77, 0]])
         
-        image_labels_final_path = os.path.join(folder, 'histology', 'labels_augmented_GM_WM_masked.png')
-        image_labels_final = np.array(Image.open(image_labels_final_path))
-        image_labels_final = create_image_labels_final(image_labels_final, colors = [[153, 153, 0], [153, 77, 0]])
         
-        
-        dice_score = {'raw': 0, 'pre-align': 0, 'contour': 0, 'MLS': 0, 'final': 0}
+        dice_score = {'raw': 0, 'pre-align': 0, 'contour': 0, 'MLS': 0}
         
         border_gt = get_border(image_gt, img_labels = False, size_neighbors = size_neighbors, colors = [128, 255])
         border_gt_img = Image.fromarray(border_gt.astype(np.uint8) * 255)
@@ -125,12 +121,8 @@ def compute_similarity(data_folder):
         border_aligned_img = Image.fromarray(border_aligned.astype(np.uint8) * 255)
         border_aligned_img.save(os.path.join(folder, 'histology', 'border_aligned.png'))
         
-        border_final = get_border(image_labels_final, img_labels = True, size_neighbors = size_neighbors, colors = [[153, 153, 0], [153, 77, 0]])
-        border_final_img = Image.fromarray(border_final.astype(np.uint8) * 255)
-        border_final_img.save(os.path.join(folder, 'histology', 'border_final.png'))
-        
         img_reference = border_gt
-        img_aligned = [border_raw, border_inti, border_contour, border_aligned, border_final]
+        img_aligned = [border_raw, border_inti, border_contour, border_aligned]
 
         for img, (key,_) in zip(img_aligned, dice_score.items()):
             dice_score[key] = dice(img_reference, img, k = 1)
