@@ -1,0 +1,7 @@
+x
+y
+angle
+rotation
+shrink
+x_offest
+y_offest

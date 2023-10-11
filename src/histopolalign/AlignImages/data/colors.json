@@ -1,0 +1,7 @@
+{"Tumor 0-30": {"RGB": [0, 255, 255], "code": 1}, 
+"Tumor 30-70": {"RGB": [0, 0, 255], "code": 2}, 
+"Tumor 70-100": {"RGB": [255, 0, 0], "code": 3}, 
+"NormalTissue": {"RGB": [0, 255, 0], "code": 4}, 
+"Fibrosis": {"RGB": [128, 128, 0], "code": 5}, 
+"Necrosis": {"RGB": [255, 255, 0], "code": 6}, 
+"Background": {"RGB": [255, 255, 255], "code": 0}}

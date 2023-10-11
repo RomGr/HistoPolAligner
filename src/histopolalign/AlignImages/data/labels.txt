@@ -1,0 +1,8 @@
+Tumor 0-30
+Tumor 30-70
+Tumor 70-100
+NormalTissue
+Fibrosis
+Necrosis
+GreyMatter
+WhiteMatter

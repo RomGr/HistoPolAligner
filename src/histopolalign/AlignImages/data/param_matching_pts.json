@@ -1,0 +1,1 @@
+{"displayFlag": 1, "affineStartFlag": 1, "polarityFlag": 0, "costDum": 0.15, "numDumRate": 0.6, "thetaWeight": 0.1, "nbins_theta": 6, "nbins_r": 5, "r_inner": 0.125, "r_outer": 2, "tan_eps": 1.0, "numIter": 20, "betaInit": 1, "r": 1, "w": 4, "sf": 2.5, "neighborWeight": 0.6}

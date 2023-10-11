@@ -108,6 +108,12 @@ ENV/
 src/histopolalign/alignment/
 notebooks/temp/
 notebooks/temp_processing/
-data/
+data/HealthyHuman
+data/HealthyMethods
+data/HistologyResults
+data/TumorMeasurements
+data/TumorMeasurementsMethods
+data/21
+data/21_test
 calib
 Fiji.app
