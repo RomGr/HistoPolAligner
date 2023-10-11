@@ -1,4 +1,4 @@
-from histopolalign import align_imgs
+from histopolalign.AlignImages import align_imgs
 import imagej
 import pickle
 import os
@@ -13,6 +13,7 @@ def main():
     Returns
     -------
     """
+    print('here')
     # load the alignment measurements object
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)).split('src')[0], 'notebooks', 'temp', 'align_measurement.pickle'), 'rb') as handle:
         alignment_measurements = pickle.load(handle)

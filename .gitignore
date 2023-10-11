@@ -105,7 +105,7 @@ ENV/
 .vscode/
 
 # specific folders
-src/histopolalign/alignment/
+src/histopolalign/AlignImages/alignment
 notebooks/temp/
 notebooks/temp_processing/
 data/HealthyHuman

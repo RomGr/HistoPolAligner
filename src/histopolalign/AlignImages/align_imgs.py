@@ -41,7 +41,7 @@ def align_img_master(alignment_measurements: list):
         pickle.dump(alignment_measurements, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
     # call the function aligning the images
-    os.system("python " + os.path.join(dir_path, 'src', 'histopolalign', 'imgJ_align.py'))
+    os.system("python " + os.path.join(dir_path, 'src', 'histopolalign', 'AlignImages', 'imgJ_align.py'))
     
     # recover the alignment measurements object from the temp folder
     with open(os.path.join(path_temp, 'align_measurement.pickle'), 'rb') as handle:
