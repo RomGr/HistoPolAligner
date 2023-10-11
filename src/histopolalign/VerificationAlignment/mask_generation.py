@@ -12,23 +12,35 @@ def create_the_masks(path_fixation_folder: str = None, folders_of_interest: list
     ----------
     path_fixation_folder : str
         the path to the measurement folder
+    folders_of_interest : list
+        the list of the folders to be considered
+        
+    Returns
+    ----------
+    folder_of_interests : list
+        the list of the folders considered
     """
     folders = os.listdir(path_fixation_folder)
 
+    # if no folder of interest is provided, use the folders provided by the variable folders_of_interest
     if path_fixation_folder is None:
         assert folders_of_interest is not None
         folder_of_interests = folders_of_interest
         
     else:
         assert path_fixation_folder is not None
+        
+        # get the folders of interest (in a .txt file)
         folders_of_interest = load_folders()
         
+        # add each measurement in folders_of_interest to the list of folders to be considered
         folder_of_interests = []
         for folder in folders:
             for measurement in os.listdir(os.path.join(path_fixation_folder, folder)):
                 if measurement in folders_of_interest:
                     folder_of_interests.append(os.path.join(path_fixation_folder, folder, measurement))
 
+    # create the GM / WM masks for each folder of interest
     for folder_of_interest in tqdm(folder_of_interests):
         _ = get_masks(folder_of_interest)
         
@@ -41,16 +53,19 @@ def load_folders():
 
     Returns
     -------
+    folders_of_interest : list
+        the list of the folders considered
     """
     dir_path = os.path.dirname(os.path.realpath(__file__).split('VerificationAlignment')[0])
     with open(os.path.join(dir_path, 'data', 'folders_verification.txt')) as f:
         lines = f.readlines()
     f.close()
-    return lines[0]
+    folders_of_interest = lines[0]
+    return folders_of_interest
 
 
 
-def get_masks(path: str = None, bg = True):
+def get_masks(path: str = None, bg: bool = True):
     """
     obtain the masks (white matter, grey matter and background) by combining previsously manually drawn masks
 
@@ -58,17 +73,13 @@ def get_masks(path: str = None, bg = True):
     ----------
     path : str
         the path to the folder containing the annotations considered
+    bg : bool
+        boolean changing if WM or BG is the first class
 
     Returns
     -------
-    BG_merged : array of shape (388,516)
-        the background mask
-    GM_merged : array of shape (388,516)
-        the grey matter mask
-    WM_merged : array of shape (388,516)
-        the white matter mask
-    all_merged : array of shape (388,516)
-        the three masks combined (one color = one class)
+    masks
+        the merged masks
     """
     BG = []
     WM = []
@@ -82,6 +93,7 @@ def get_masks(path: str = None, bg = True):
             im = Image.open(os.path.join(path, file))
             imarray = np.array(im)
             
+            # add all the WM and BG files to the corresponding lists
             if 'BG' in file and not 'merged' in file:
                 BG.append(imarray)
             elif 'WM' in file and not 'merged' in file and not 'GM' in file:
@@ -91,17 +103,15 @@ def get_masks(path: str = None, bg = True):
             else:
                 raise(NotImplementedError)
     
-    
     # combine the WM and BG masks
     WM = combine_masks(WM)
     BG = combine_masks(BG)
-    GM = np.zeros(WM.shape)
     
     # return the merged masks
-    return merge_masks(BG, WM, GM, path, bg)
+    return merge_masks(BG, WM, path, bg)
 
 
-def combine_masks(masks):
+def combine_masks(masks: list):
     """
     combine previsously manually drawn masks
 
@@ -132,7 +142,7 @@ def combine_masks(masks):
     return base
 
 
-def merge_masks(BG, WM, GM, path, bg):
+def merge_masks(BG, WM, path, bg):
     """
     merge masks is used to merge the previsously combined manually drawn masks
 
@@ -140,12 +150,12 @@ def merge_masks(BG, WM, GM, path, bg):
     ----------
     BG : array of shape (388,516)
         the combined background mask
-    GM : array of shape (388,516)
-        the combined grey matter mask
     WM : array of shape (388,516)
         the combined white matter mask
     path : str
         the path to the folder containing the annotations considered
+    bg : bool
+        boolean changing if WM or BG is the first class
 
     Returns
     -------
@@ -163,6 +173,7 @@ def merge_masks(BG, WM, GM, path, bg):
     GM_merged = np.zeros(WM.shape)
     all_merged = np.zeros(WM.shape)
 
+    # iterate through the pixels of the masks
     for idx, x in enumerate(WM):
         for idy, y in enumerate(x):
             
@@ -202,6 +213,7 @@ def merge_masks(BG, WM, GM, path, bg):
     save_image(path, WM_merged, 'WM_merged')
     save_image(path, BG_merged, 'BG_merged')
     save_image(path, GM_merged, 'GM_merged')
+    
     new_p = Image.fromarray(all_merged)
     if new_p.mode != 'L':
         new_p = new_p.convert('L')
@@ -211,7 +223,7 @@ def merge_masks(BG, WM, GM, path, bg):
     return BG_merged, WM_merged, GM_merged, all_merged
 
 
-def save_image(path, img, name):
+def save_image(path: str, img: np.array, name: str):
     """
     save_image is used to save an image as a .png file
 
