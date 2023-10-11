@@ -9,9 +9,9 @@ import pickle
 from scipy.io import savemat
 from tqdm import tqdm
 
-from histopolalign.prepare_images import FolderAlignHistology, count_pixels
-from histopolalign.helpers import load_color_maps
-from histopolalign.prepare_images import process_image_pathology
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology, count_pixels
+from histopolalign.AlignImages.helpers import load_color_maps
+from histopolalign.AlignImages.prepare_images import process_image_pathology
 
 
 def create_align_folders(alignment_measurements: list, Verbose: bool = False):

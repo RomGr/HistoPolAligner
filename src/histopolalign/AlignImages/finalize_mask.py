@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import random
 random.seed(0)
 
-from histopolalign.prepare_images import FolderAlignHistology
-from histopolalign.helpers import load_color_code_links, most_frequent, load_color_maps
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology
+from histopolalign.AlignImages.helpers import load_color_code_links, most_frequent, load_color_maps
 
 
 def generate_final_masks(alignment_measurements: list, Verbose: bool = False):

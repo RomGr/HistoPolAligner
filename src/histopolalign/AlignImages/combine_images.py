@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import time
-from histopolalign.helpers import load_labels_idx, load_combined_img_link
+from histopolalign.AlignImages.helpers import load_labels_idx, load_combined_img_link
 
 
 def create_to_align_folder():

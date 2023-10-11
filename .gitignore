@@ -108,6 +108,6 @@ ENV/
 src/histopolalign/alignment/
 notebooks/temp/
 notebooks/temp_processing/
-data
+data/
 calib
 Fiji.app

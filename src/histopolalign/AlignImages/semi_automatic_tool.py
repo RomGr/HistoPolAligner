@@ -6,8 +6,8 @@ import json
 from rembg import remove
 import shutil
 
-from histopolalign.helpers import load_position_names, compare_two_lists
-from histopolalign.prepare_images import FolderAlignHistology, apply_transformation
+from histopolalign.AlignImages.helpers import load_txt_file, compare_two_lists
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology, apply_transformation
 
 
 def ask_for_parameters(measurement: FolderAlignHistology, force_recompute: bool = False):
@@ -31,7 +31,7 @@ def ask_for_parameters(measurement: FolderAlignHistology, force_recompute: bool 
         f.close()
         
         # check if all the fields are present
-        assert compare_two_lists(load_position_names(), list(data.keys()))
+        assert compare_two_lists(load_txt_file('position_names.txt'), list(data.keys()))
         assert force_recompute is False
         
         # if yes, then set the parameters in the measurement object

@@ -8,8 +8,8 @@ import numpy as np
 from rembg import remove
 from skimage.measure import regionprops
 
-from histopolalign.helpers import get_folders_lacking_orientation
-from histopolalign.helpers import load_wavelengths
+from histopolalign.AlignImages.helpers import get_folders_lacking_orientation
+from histopolalign.AlignImages.helpers import load_wavelengths
 
 
 def create_the_alignments(histology_path: str, polarimetry_path: str, Verbose: bool = False):

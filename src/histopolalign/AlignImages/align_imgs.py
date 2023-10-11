@@ -4,9 +4,8 @@ import os, shutil
 import pickle
 import scipy.io as sio
 
-from histopolalign.prepare_images import FolderAlignHistology
-
-from histopolalign.align_folders import get_positions
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology
+from histopolalign.AlignImages.align_folders import get_positions
 
 
 def align_img_master(alignment_measurements: list):

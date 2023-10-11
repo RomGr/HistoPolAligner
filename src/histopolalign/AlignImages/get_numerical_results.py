@@ -3,8 +3,8 @@ from collections import defaultdict
 import pickle
 import numpy as np
 
-from histopolalign.helpers import load_color_code_links
-from histopolalign.prepare_images import FolderAlignHistology
+from histopolalign.AlignImages.helpers import load_color_code_links
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology
 
 
 def create_numerical_values(alignment_measurements: list):

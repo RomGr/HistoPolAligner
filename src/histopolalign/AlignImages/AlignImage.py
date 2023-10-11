@@ -1,17 +1,43 @@
 from tqdm import tqdm
 import os
 from processingmm import batch_processing
-from histopolalign import combine_images, prepare_images, semi_automatic_tool, align_folders, match_skeletons, align_imgs, finalize_mask, get_numerical_results
+from histopolalign.AlignImages import combine_images, prepare_images, semi_automatic_tool, align_folders, match_skeletons, align_imgs, finalize_mask, get_numerical_results
 
 def align_measurements():
+    """
+    master function calling the function to align the images for each measurement folder
+
+    Parameters
+    ----------
+    
+    Returns
+    -------
+    """
+    # get the path to the folder containing the measurements
     neoplastic_polarimetry_path = os.path.join(os.getcwd().split('notebooks')[0], 'data', 'TumorMeasurements')
+    
+    # iterate over the folders containing the measurements and align the images
     for folder in tqdm(os.listdir(neoplastic_polarimetry_path)):
+        
+        # check that the folder contains measurements
         assert len(os.listdir(os.path.join(neoplastic_polarimetry_path, folder))) > 0, 'No measurements in folder {}'.format(folder)
         align_single_measurement(folder, neoplastic_polarimetry_path = neoplastic_polarimetry_path)
     
 
 def align_single_measurement(neoplastic_folder: str, neoplastic_polarimetry_path: str = None):
+    """
+    function aligning the measurement for one patient
+
+    Parameters
+    ----------
+    neoplastic_folder : str
+        the name of the folder containing the measurements
+    neoplastic_polarimetry_path : str, optional
+        the path to the folder containing the measurements, by default None
     
+    Returns
+    -------
+    """
     # 1. Process the measurements that will be aligned
     
     # get the folder in which the polarimetric measurements are stored

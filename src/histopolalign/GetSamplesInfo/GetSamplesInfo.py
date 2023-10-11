@@ -16,13 +16,15 @@ def return_samples_info():
     
     print('Proportion Wowen = ' + str(100 * sum(df_final['Sex'] == 'W')/len(df_final)) + '\n')
     print('Mean Age = ' + str(np.mean(df_final['Date of Birth'])) + '\n')
-    tumor_types, tumor_types_proportions = get_tumor_type(df_final)
+    tumor_types, tumor_types_proportions, tumor_types_age = get_tumor_type(df_final)
     print('Tumor types:')
     print(tumor_types)
     print('\n')
     print('Tumor types proportion:')
     print(tumor_types_proportions)
     print('\n')
+    print('Tumor types mean age:')
+    print(tumor_types_age)
     return df_final
 
 
@@ -61,7 +63,7 @@ def get_tumor_type(df_final):
         except:
             pass
         
-    return tumor_types, tumor_types_proportions
+    return tumor_types, tumor_types_proportions, tumor_types_age
 
 def calculate_age(born):
     today = date.today()

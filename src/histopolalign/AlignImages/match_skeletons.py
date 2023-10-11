@@ -18,8 +18,8 @@ import numpy as np
 from scipy import ndimage
 import time
 
-from histopolalign.prepare_images import FolderAlignHistology
-from histopolalign.helpers import load_param_matching_pts
+from histopolalign.AlignImages.prepare_images import FolderAlignHistology
+from histopolalign.AlignImages.helpers import load_param_matching_pts
 import matplotlib.pyplot as plt
 import random
 random.seed(42)

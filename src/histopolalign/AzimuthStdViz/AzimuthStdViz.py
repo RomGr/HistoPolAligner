@@ -1,12 +1,10 @@
 import os
 import numpy as np
 from PIL import Image
-from collections import defaultdict
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KernelDensity
 from scipy.stats import circstd
 from tqdm import tqdm
-from matplotlib import cm, colors
+from matplotlib import cm
 import matplotlib.cbook
 import matplotlib.colors as clr
 import warnings

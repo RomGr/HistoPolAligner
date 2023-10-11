@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 import os
 from PIL import Image
-import ast
 
 
 def create_the_masks(path_fixation_folder: str = None, folders_of_interest: list = None):
