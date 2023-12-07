@@ -3,6 +3,8 @@ from PIL import Image, ImageFilter
 import cv2
 from tqdm import tqdm
 import os
+from medpy.metric.binary import assd
+from skimage.metrics import hausdorff_distance
 
 def compute_similarity(data_folder: list):
     """
@@ -19,6 +21,8 @@ def compute_similarity(data_folder: list):
         the dice scores for the alignments
     """
     dice_scores = {}
+    assd_scores = {}
+    hausdorff_scores = {}
     size_neighbors = 4
 
     for folder in tqdm(data_folder):
@@ -27,7 +31,7 @@ def compute_similarity(data_folder: list):
 
         img_reference = border_gt
         img_aligned = [border_raw, border_inti, border_contour, border_aligned]
-
+        
         # initialize the dice scores
         dice_score = {'raw': 0, 'pre-align': 0, 'contour': 0, 'MLS': 0}
         
@@ -40,7 +44,23 @@ def compute_similarity(data_folder: list):
             
         dice_scores[folder] = dice_score
         
-    return dice_scores
+        gt = image_gt == 255
+        # initialize the assd_scores
+        assd_score = {'raw': 0, 'pre-align': 0, 'contour': 0, 'MLS': 0}
+        for img, (key,_) in zip([image_labels_raw, image_labels_inti, image_labels_contour, image_labels_aligned], assd_score.items()):
+            assd_score[key] = assd(gt, np.sum(img, axis = 2) == 2*153)
+            
+        assd_scores[folder] = assd_score
+        
+        gt = img_reference
+        # initialize the assd_scores
+        hausdorff_score = {'raw': 0, 'pre-align': 0, 'contour': 0, 'MLS': 0}
+        for img, (key,_) in zip(img_aligned, hausdorff_score.items()):
+            hausdorff_score[key] = hausdorff_distance(gt, img)
+            
+        hausdorff_scores[folder] = hausdorff_score
+        
+    return dice_scores, assd_scores, hausdorff_scores
 
 
 def load_labels(folder: str):

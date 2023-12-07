@@ -117,4 +117,4 @@ data/21
 data/21_test
 calib
 Fiji.app
-results/
+results/*

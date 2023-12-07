@@ -145,7 +145,6 @@ def get_combined_img(imgs_all: dict, force_recompute: bool = False, Verbose = Fa
     # iterate over the different histology folders
     start = time.time()
     for filename, imgs in imgs_all.items():
-        
         # create the results directory in which the combined image will be stored
         results_directory = os.path.join(filename, 'results')
         try:
