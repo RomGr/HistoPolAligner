@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 import matplotlib
 
-def get_parameters_healthy(polarimetry_path: str, azimuth_sq_size: int = 8):
+def get_parameters_healthy(polarimetry_path: str, azimuth_sq_size: int = 8, type_ = ''):
     """
     get_parameters_healthy is a function used to collect the polarimetric parameters of the healthy tissue in the white and in the grey matter
 
@@ -30,65 +30,66 @@ def get_parameters_healthy(polarimetry_path: str, azimuth_sq_size: int = 8):
     # loop over the folders containing the polarimetric images
     for folder in tqdm(os.listdir(polarimetry_path)):
         
-        # load the Mueller matrix
-        path_MM = os.path.join(polarimetry_path, folder, 'polarimetry', '550nm', 'MM.npz')
-        MM = np.load(path_MM)
-        totP = MM['totP']
-        linR = MM['linR']
-        azimuth = MM['azimuth']
-        mask = MM['Msk']
-        
-        # load the grey / white matter annotation mask
-        path_annotation = os.path.join(polarimetry_path, folder, 'annotation', 'merged.png')
-        img = np.array(Image.open(path_annotation))
-        
-        # loop over the pixels and add them to the values dictionary if they are not background
-        for idx, x in enumerate(img):
-            for idy, y in enumerate(x):
-                if y == 0 or not mask[idx, idy]:
-                    pass
-                else:
-                    for mat, param in zip([totP, linR], parameters):
-                        values_folder[param][y].append(mat[idx, idy])
-        
-        # do the same for the azimuth of the optical axis
-        for idx, x in enumerate(img):
-            for idy, _ in enumerate(x):
-                
-                # get the neighbors of the pixel
-                neighbors = img[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
-                msked = mask[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
-                
-                # check is most pixels are valid
-                if sum(msked.flatten()) > 0.5 * azimuth_sq_size * azimuth_sq_size:
+        if type_ in folder:
+            # load the Mueller matrix
+            path_MM = os.path.join(polarimetry_path, folder, 'polarimetry', '550nm', 'MM.npz')
+            MM = np.load(path_MM)
+            totP = MM['totP']
+            linR = MM['linR']
+            azimuth = MM['azimuth']
+            mask = MM['Msk']
+            
+            # load the grey / white matter annotation mask
+            path_annotation = os.path.join(polarimetry_path, folder, 'annotation', 'merged.png')
+            img = np.array(Image.open(path_annotation))
+            
+            # loop over the pixels and add them to the values dictionary if they are not background
+            for idx, x in enumerate(img):
+                for idy, y in enumerate(x):
+                    if y == 0 or not mask[idx, idy]:
+                        pass
+                    else:
+                        for mat, param in zip([totP, linR], parameters):
+                            values_folder[param][y].append(mat[idx, idy])
+            
+            # do the same for the azimuth of the optical axis
+            for idx, x in enumerate(img):
+                for idy, _ in enumerate(x):
                     
-                    # check if all the pixels belongs to the same class
-                    if np.sum(neighbors == 128) == azimuth_sq_size * azimuth_sq_size or np.sum(neighbors == 255) == azimuth_sq_size * azimuth_sq_size or np.sum(neighbors == 0) == azimuth_sq_size * azimuth_sq_size:
-                        # get the azimuth of the neighbors
-                        neighbors_MM = azimuth[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
-                        neighbors_cleaned = []
+                    # get the neighbors of the pixel
+                    neighbors = img[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
+                    msked = mask[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
+                    
+                    # check is most pixels are valid
+                    if sum(msked.flatten()) > 0.5 * azimuth_sq_size * azimuth_sq_size:
                         
-                        # add the valid neighbors to the list
-                        for idx_msk, x_msk in enumerate(msked):
-                            for idy_msk, y_msk in enumerate(x_msk):
-                                if y_msk:
-                                    neighbors_cleaned.append(neighbors_MM[idx_msk, idy_msk])
-                                else:
-                                    pass
-                        
-                        # add the value of the circular standard deviation to the dictionary
-                        if np.sum(neighbors == 128) == azimuth_sq_size * azimuth_sq_size:
-                            values_folder['azimuth'][128].append(circstd(neighbors_cleaned, high=180, low=0))
-                        elif np.sum(neighbors == 255) == azimuth_sq_size * azimuth_sq_size:
-                            values_folder['azimuth'][255].append(circstd(neighbors_cleaned, high=180, low=0))
-                        elif np.sum(neighbors == 0) == azimuth_sq_size * azimuth_sq_size:
-                            values_folder['azimuth'][0].append(circstd(neighbors_cleaned, high=180, low=0))
+                        # check if all the pixels belongs to the same class
+                        if np.sum(neighbors == 128) == azimuth_sq_size * azimuth_sq_size or np.sum(neighbors == 255) == azimuth_sq_size * azimuth_sq_size or np.sum(neighbors == 0) == azimuth_sq_size * azimuth_sq_size:
+                            # get the azimuth of the neighbors
+                            neighbors_MM = azimuth[idx : idx + azimuth_sq_size, idy : idy + azimuth_sq_size]
+                            neighbors_cleaned = []
+                            
+                            # add the valid neighbors to the list
+                            for idx_msk, x_msk in enumerate(msked):
+                                for idy_msk, y_msk in enumerate(x_msk):
+                                    if y_msk:
+                                        neighbors_cleaned.append(neighbors_MM[idx_msk, idy_msk])
+                                    else:
+                                        pass
+                            
+                            # add the value of the circular standard deviation to the dictionary
+                            if np.sum(neighbors == 128) == azimuth_sq_size * azimuth_sq_size:
+                                values_folder['azimuth'][128].append(circstd(neighbors_cleaned, high=180, low=0))
+                            elif np.sum(neighbors == 255) == azimuth_sq_size * azimuth_sq_size:
+                                values_folder['azimuth'][255].append(circstd(neighbors_cleaned, high=180, low=0))
+                            elif np.sum(neighbors == 0) == azimuth_sq_size * azimuth_sq_size:
+                                values_folder['azimuth'][0].append(circstd(neighbors_cleaned, high=180, low=0))
                         
     return values_folder
 
 
 
-def get_all_folders(neoplastic_polarimetry_path: str):
+def get_all_folders(neoplastic_polarimetry_path: str, type_ = ''):
     """
     get_all_folders finds all the neoplastic tumor polarimetric measurements folders
 
@@ -107,10 +108,11 @@ def get_all_folders(neoplastic_polarimetry_path: str):
     # iterate over the patient folders
     for folder in os.listdir(neoplastic_polarimetry_path):
         folder_measurement = os.path.join(neoplastic_polarimetry_path, folder)
-        
+            
         # iterate over the measurement folders
         for measurement in os.listdir(folder_measurement):
-            path_folders.append(os.path.join(folder_measurement, measurement))
+            if type_ in measurement:
+                path_folders.append(os.path.join(folder_measurement, measurement))
     return path_folders
 
 

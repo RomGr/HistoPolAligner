@@ -47,8 +47,13 @@ def get_and_plots_stds(measurements: list, sq_size: int = 4):
             for idy in range(0, len(azimuth[0]), 1):
                 try:
                     # extract the azimuth in a square around the pixel and compute the std
-                    assert azimuth[idx-sq_size//2:idx+sq_size//2,idy-sq_size//2:idy+sq_size//2].shape == ((4,4))
-                    std = circstd(azimuth[idx-sq_size//2:idx+sq_size//2,idy-sq_size//2:idy+sq_size//2], high=180)
+                    if (sq_size % 2) == 0:
+                        neighbors = azimuth[idx-sq_size//2:idx+sq_size//2,idy-sq_size//2:idy+sq_size//2]
+                    else:
+                        neighbors = azimuth[idx-sq_size//2:idx+sq_size//2+1,idy-sq_size//2-1:idy+sq_size//2]
+
+                    assert neighbors.shape == ((sq_size,sq_size))
+                    std = circstd(neighbors, high=180, low=0)
                     try:
                         azimuth_std[idx, idy] = std
                     except:
@@ -62,7 +67,7 @@ def get_and_plots_stds(measurements: list, sq_size: int = 4):
         
         # load the GM/WM mask and plot the azimuth noise
         try:
-            path_mask = os.path.join(folder, 'histology', 'labels_augmented_GM_WM_masked.png')
+            path_mask = os.path.join(folder, 'histology', 'labels_augmented_GM_WM_masked_FG.png')
             mask = np.asarray(Image.open(path_mask))
             plot_azimuth_noise(azimuth_std, folder, mask)
         except:

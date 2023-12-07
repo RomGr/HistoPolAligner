@@ -45,8 +45,8 @@ def create_final_labels(measurement: FolderAlignHistology):
     color_code_link = load_color_code_links()
     color_code_link_GM_WM = load_color_code_links(GM_WM = True)
     
-    img_labels_propagated = measurement.labels_final
-    img_labels_propagated_GM_WM = measurement.labels_GM_WM_final
+    img_labels_propagated = measurement.labels_FG
+    img_labels_propagated_GM_WM = measurement.labels_GM_WM_FG
 
     mask = np.where(np.logical_or(np.sum(img_labels_propagated, axis = 2) != 0, np.sum(img_labels_propagated_GM_WM, axis = 2) != 0))
     img_labels_final = np.zeros(np.asarray(img_labels_propagated).shape[0:2])

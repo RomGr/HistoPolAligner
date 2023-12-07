@@ -482,8 +482,63 @@ def get_final_mask(measurement: FolderAlignHistology, wavelength: str = '550'):
     
     measurement.labels_final = img_labels_propagated
     measurement.labels_GM_WM_final = img_labels_propagated_GM_WM
+    
+    remove_background(measurement)
+    overlay_img(measurement.img_polarimetry_gs,
+                measurement.labels_FG, 
+                os.path.join(path_histology_polarimetry, 'overlay_final_FG.png'))
+    overlay_img(measurement.img_polarimetry_gs,
+                measurement.labels_GM_WM_FG, 
+                os.path.join(path_histology_polarimetry, 'overlay_final_GM_WM_FG.png'))
+    
+    # create an image for the labels
+    Image.fromarray(measurement.labels_FG).save(os.path.join(path_histology_polarimetry, 
+                                                                 'labels_augmented_masked_FG.png'))
+    Image.fromarray(measurement.labels_GM_WM_FG).save(os.path.join(path_histology_polarimetry, 
+                                                                   'labels_augmented_GM_WM_masked_FG.png'))
+    
+    path_polarimetry = measurement.polarimetry_path_gs.split('nm')[0] + 'nm'
+    paths = [os.path.join(path_polarimetry, 'Intensity_img.png'), os.path.join(path_polarimetry, 'Azimuth of optical axis_img.png'),
+            os.path.join(path_polarimetry, 'Depolarization_img.png'), os.path.join(path_polarimetry, 'Linear retardance_img.png')]
+
+    for path in paths:
+        img = np.array(Image.open(path))
+        labels = mask_labels(img, measurement.FG, measurement.FG_contour, polarimetry = True)
+        Image.fromarray(labels).save(path.replace('img', 'img_masked'))
 
 
+def remove_background(measurement):
+    FG = np.array(Image.open(os.path.join(measurement.path_histology_polarimetry.replace('histology', 'annotation'), 'FG.tif')))
+    kernel = np.ones((5, 5), np.uint8) 
+    FG = cv2.erode(FG, kernel)
+    measurement.FG = FG
+    FG_contour = cv2.Canny(FG, 30, 200) 
+    FG_contour = cv2.dilate(FG_contour, kernel)
+    measurement.FG_contour = FG_contour
+    labels, labels_GM = measurement.labels_final, measurement.labels_GM_WM_final
+    measurement.labels_FG, measurement.labels_GM_WM_FG = mask_labels(labels, FG), mask_labels(labels_GM, FG)
+
+
+def mask_labels(labels, mask, mask_contour = None, polarimetry = False):
+    masked = np.zeros(labels.shape)
+    for idx, x in enumerate(labels):
+        for idy, y in enumerate(x):
+            if mask[idx, idy] == 0:
+                if polarimetry:
+                    masked[idx, idy] = [0, 0, 0, 255]
+                else:
+                    pass
+            else:
+                masked[idx, idy] = y
+                
+            if polarimetry:
+                if mask_contour[idx, idy] != 0:
+                    masked[idx, idy] = [255, 255, 255, 255]
+    return masked.astype(np.uint8)
+
+
+    
+    
 def overlay_img(path_bg: str, path_fg: str, save_path: str):
     """
     is the function used to overlay one image witg another

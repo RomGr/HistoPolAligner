@@ -83,19 +83,19 @@ def align_w_imageJ(ij, alignment_measurements: list):
     open(""" + current_folder + """/notebooks/temp/polarimetry.png");
 
     call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
-    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels_GM_WM.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels_GM_WM.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Fine] divergence_weight=0 curl_weight=0 landmark_weight=3 image_weight=0 consistency_weight=1 stop_threshold=0.05");
     saveAs("Tiff", """ + current_folder + """/notebooks/temp/labels_GM_WM_registered.tif");
     close();
     close();
     
     call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
-    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=8 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=labels.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Fine] divergence_weight=0 curl_weight=0 landmark_weight=3 image_weight=0 consistency_weight=1 stop_threshold=0.05");
     saveAs("Tiff", """ + current_folder + """/notebooks/temp/labels_registered.tif");
     close();
     close();
 
     call("bunwarpj.bUnwarpJ_.loadLandmarks", """ + current_folder + """/notebooks/temp/coordinates.txt");
-    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=histology.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Very Fine] divergence_weight=0 curl_weight=0 landmark_weight=4 image_weight=0 consistency_weight=2 stop_threshold=0.01");
+    run("bUnwarpJ", "load=""" + current_folder_no_start + """/notebooks/temp/coordinates.txt source_image=polarimetry.png target_image=histology.png registration=Accurate image_subsample_factor=0 initial_deformation=Coarse final_deformation=[Fine] divergence_weight=0 curl_weight=0 landmark_weight=3 image_weight=0 consistency_weight=1 stop_threshold=0.05");
     saveAs("Tiff", """ + current_folder + """/notebooks/temp/histo_registered.tif");
 
     close();
