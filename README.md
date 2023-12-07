@@ -35,7 +35,13 @@ The [Jupyter notebooks](http://jupyter.org/) used to generate the results are lo
 
 You will in a first time need to create a environnement for imageJ computing in python, following the instructions [here](https://py.imagej.net/en/latest/Install.html):
 
-    conda create -n pyimagej pyimagej openjdk=11 python=3.8
+1. Install [miniforge3](https://github.com/conda-forge/miniforge#miniforge3)
+2. Install PyImageJ into a new environment:
+
+    mamba create -n pyimagej pyimagej openjdk=11
+
+3. Activate the new environment:
+
     conda activate pyimagej
 
 To test if the installation was sucessful:
