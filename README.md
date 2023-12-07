@@ -36,7 +36,9 @@ The [Jupyter notebooks](http://jupyter.org/) used to generate the results are lo
 
 ## Getting the code
 
-You can download a copy of all the files in this repository by cloning the
+You will in a first time need to create a environnement for imageJ computing in python, following the instructions [here](https://py.imagej.net/en/latest/Install.html).
+
+You can now download a copy of all the files in this repository by cloning the
 [git](https://git-scm.com/) repository:
 
     git clone https://github.com/RomGr/PathologyPaper.git
@@ -76,3 +78,4 @@ Five subfolders can be found in the `data` folder:
 
 ## License
 All source code is made available under a BSD license. See `LICENSE` for the full license text.
+Special thanks to Stefano Moriconi for the development of the pipeline for processing the Mueller polarimetry images.
