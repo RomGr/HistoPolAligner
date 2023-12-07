@@ -2,6 +2,16 @@ from histopolalign.AlignImages import align_imgs
 import imagej
 import pickle
 import os
+import sys
+path_home = os.path.join(os.path.dirname(os.path.realpath(__file__)).split('src')[0], 'Fiji.app', 'java')
+assert len(os.listdir(path_home)) == 1
+path_home = os.path.join(path_home, os.listdir(path_home)[0])
+assert len(os.listdir(path_home)) == 1
+path_home = os.path.join(path_home, os.listdir(path_home)[0])
+assert len(os.listdir(path_home)) == 1
+path_home = os.path.join(path_home, os.listdir(path_home)[0])
+os.environ['JAVA_HOME'] = path_home
+    
 
 def main():
     """

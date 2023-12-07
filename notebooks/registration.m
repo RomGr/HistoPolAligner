@@ -18,18 +18,18 @@ path_labels_GM_WM = strcat(path_alignment, "\histology_labels_GM_WM_upscaled.png
 labels_GM_WM = imread(path_labels_GM_WM);
 
 alpha = 0.8;
-img_polarimetry = alpha * ortho_650 + (1 - alpha) * depol;
-
+% img_polarimetry = alpha * ortho_650 + (1 - alpha) * depol;
+img_polarimetry = ortho_650;
 % img_polarimetry = imfuse(ortho_650,depol);
 
-if number_labels_lab_GM_WM >= 2
-    img_display = imfuse(histology,labels_GM_WM);
-elseif number_labels_lab >= 2
-    img_display = imfuse(histology,labels);
-else
-    img_display = histology;
-end
-
+% if number_labels_lab_GM_WM >= 2
+%    img_display = imfuse(histology,labels_GM_WM);
+% elseif number_labels_lab >= 2
+%     img_display = imfuse(histology,labels);
+% else
+%     img_display = histology;
+% end
+img_display = histology;
 
 if isfile("./temp/mp_fp.mat")
     S = load("./temp/mp_fp.mat");
