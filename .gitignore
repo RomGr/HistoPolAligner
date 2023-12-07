@@ -113,7 +113,8 @@ data/HealthyMethods
 data/HistologyResults
 data/TumorMeasurements
 data/TumorMeasurementsMethods
-data/21
-data/21_test
+data/data_to_share
+data/data_to_share.zip
 calib
 Fiji.app
+results/
