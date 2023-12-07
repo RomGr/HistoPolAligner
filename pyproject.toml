@@ -14,7 +14,7 @@ authors = [
     { email = "romain.gros@unibe.ch", name = "Romain Gros" },
 ]
 dynamic = ["version"]
-dependencies = ["scikit-image", "numpy", "tqdm", "Pillow", "matplotlib", "rembg", "opencv-python"]
+dependencies = ["scikit-image", "numpy==1.23.1", "tqdm", "Pillow", "matplotlib", "rembg", "opencv-python"]
 
 [tool.hatch.version]
 path = "src/histopolalign/__init__.py"

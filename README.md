@@ -35,25 +35,20 @@ The [Jupyter notebooks](http://jupyter.org/) used to generate the results are lo
 
 You will in a first time need to create a environnement for imageJ computing in python, following the instructions [here](https://py.imagej.net/en/latest/Install.html):
 
-1. Install [miniforge3](https://github.com/conda-forge/miniforge#miniforge3)
-2. Install PyImageJ into a new environment:
+Install [miniforge3](https://github.com/conda-forge/miniforge#miniforge3)
+
+Install PyImageJ into a new environment
 
     mamba create -n pyimagej pyimagej openjdk=11
 
-3. Activate the new environment:
+Activate the new environment
 
-    conda activate pyimagej
-
-To test if the installation was sucessful:
-
-    python -c 'import imagej; ij = imagej.init("2.14.0"); print(ij.getVersion())'
-
-should print `2.14.0` on the console.
+    mamba activate pyimagej
 
 You can now download a copy of all the files in this repository by cloning the
 [git](https://git-scm.com/) repository:
 
-    git clone https://github.com/RomGr/PathologyPaper.git
+    git clone https://github.com/RomGr/HistoPolAligner.git
 
 open a terminal and go to the location of the downloaded folder:
 
@@ -61,10 +56,14 @@ open a terminal and go to the location of the downloaded folder:
 
 After installing the package, you will need to download [Fiji](https://imagej.net/software/fiji/downloads), and copy-paste the files in the `Fiji.app` folder located at the root of the repository.
 
-You will also neeed to install `matlab.engine` package ([instructions here](https://ch.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html)).
+You will also neeed to install `matlab.engine` package ([instructions here](https://ch.mathworks.com/help/matlab/matlab_external/install-the-matlab-engine-for-python.html)), with MATLAB version earlier being R2022B or R2023A to avoid troubles with the `matlab.engine` package.
     
     cd "matlabroot\extern\engines\python"
     python -m pip install .
+
+Finally, install the tool to process Mueller Matrices 
+
+    pip install git+https://github.com/RomGr/processingMM.git
 
 ## Align Polarimetry and Histology
 The juypter notebooks 1. `AlignHistologyPolarimetrySingleMeasurement.ipynb` and 2. `AlignHistologyPolarimetry.ipynb` are the notebooks used to align:
