@@ -4,9 +4,9 @@
 [![CI](https://github.com/RomGr/PathologyPaper/actions/workflows/ci.yml/badge.svg)](https://github.com/RomGr/PathologyPaper/actions/workflows/ci.yml)
 
 by
-Romain Gros
+Romane Gros
 
-The manuscript linked to the present repository is currently under preparation. The present repository contains the code used to generate the results presented in the manuscript.
+The manuscript linked to the present repository is currently under submitted and under review. The present repository contains the code used to generate the results presented in the manuscript.
 
 The study aimed to quantify the polarimetric parameters of neoplastic brain tissue. 
 
